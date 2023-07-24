@@ -1,0 +1,16 @@
+name = "env-setup-router"
+main = "src/index.ts"
+compatibility_date = "2023-01-01"
+
+workers_dev = false
+routes = [ 
+  { pattern = "$CLOUDFLARE_DOMAIN/env-setup", zone_name = "$CLOUDFLARE_DOMAIN" },
+  { pattern = "$CLOUDFLARE_DOMAIN/env-setup/*", zone_name = "$CLOUDFLARE_DOMAIN" }
+]
+
+# The GH token will need repo read perms and the user will need access to the env-setup repo:
+# https://github.com/settings/tokens
+[vars]
+GITHUB_TOKEN = "$GITHUB_TOKEN"
+GITHUB_ORG = "$GITHUB_ORG"
+INIT_SCRIPT = "scripts/init"

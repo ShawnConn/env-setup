@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+SPLASH=${1:-""}
+
+if [[ -f "$SPLASH" ]]; then
+    cp scripts/init /tmp/splash
+    sed "/    cat << \"SPLASH\"/r $SPLASH" /tmp/splash > scripts/init
+    rm /tmp/splash
+fi

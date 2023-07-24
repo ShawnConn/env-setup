@@ -1,0 +1,59 @@
+---
+- name: Install Language Packages
+  hosts: all
+  gather_facts: true
+
+  vars_files:
+    - ../../../default.config.yml
+
+  pre_tasks: []
+
+  roles: []
+
+  tasks:
+    # NOTE: install Rust via Homebrew can be odd, perhaps use alternatives
+    - name: Install Rust packages
+      shell: $(brew --prefix rust)/bin/cargo install "{{ item.name }}"
+      args:
+        executable: bash
+      loop: "{{ cargo_packages }}"
+      ignore_errors: true
+
+    - name: Install PHP packages
+      community.general.composer:
+        command: require
+        global_command: true
+        arguments: "{{ item.name }}"
+      loop: "{{ composer_packages }}"
+      ignore_errors: true
+
+    # NOTE: install Go via Homebrew can be odd, perhaps use alternatives
+    # https://github.com/suzuki-shunsuke/ansible-go-module alternative
+    - name: Install Go packages
+      shell: export GOROOT="$(brew --prefix golang)/libexec" && go install "{{ item.name }}"
+      args:
+        executable: bash
+      loop: "{{ go_packages }}"
+      ignore_errors: true
+
+    - name: Install Ruby packages
+      community.general.gem:
+        name: "{{ item.name }}"
+        state: latest
+      loop: "{{ gem_packages }}"
+      ignore_errors: true
+
+    - name: Install NPM packages
+      community.general.npm:
+        name: "{{ item.name }}"
+        global: true
+      loop: "{{ npm_packages }}"
+      ignore_errors: true
+
+    - name: Install Python packages
+      ansible.builtin.pip:
+        name: "{{ item.name }}"
+      loop: "{{ pip_packages }}"
+      ignore_errors: true
+        
+  post_tasks: []

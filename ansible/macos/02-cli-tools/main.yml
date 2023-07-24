@@ -1,0 +1,18 @@
+---
+- name: Install CLI tools
+  hosts: all
+  gather_facts: true
+
+  vars_files:
+    - ../../../default.config.yml
+
+  pre_tasks: []
+
+  roles:
+    - { role: geerlingguy.mac.homebrew, 
+        homebrew_cask_apps: [],
+        tags: ["print_action"] }
+
+  tasks: []
+
+  post_tasks: []

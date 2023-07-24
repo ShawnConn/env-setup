@@ -1,0 +1,193 @@
+# Default env-setup playbook vars
+#
+# This YAML contains the list overridable variables in the env-setup playbooks.
+# Copy this file to config.yml and any edited value will be used in place of 
+# its default.
+#
+# USAGE EXAMPLE: replace the default dotfiles with your own.
+# cp default.config.yml config.yml
+# awk '{sub(/dotfiles_repo:.*/,"dotfiles_repo:\"https://github.com/my_github_screenname/dotfiles.git\""); print}' config.yml
+# env-setup
+---
+downloads: ~/.ansible-downloads/
+
+# name: env-setup.01-config ####################################################
+
+# name: geerlingguy.dotfiles
+# Find dotfiles via $(find . -type f | grep -vE '\.\/\.git\/' | sed -e 's/\.\///g')
+dotfiles_repo: https://github.com/luciditi/env-setup-dotfiles
+dotfiles_repo_accept_hostkey: yes
+dotfiles_repo_local_destination: ~/env-setup-dotfiles
+dotfiles_repo_version: main
+dotfiles_files:
+  - .bash_profile
+  - .direnvrc
+  - .fzf.zsh
+  - .gitconfig
+  - .gitignore_global
+  - .git_template
+  - .inputrc
+  - .macos
+  - .notags
+  - .p10k.zsh
+  - .shell
+  - .vim/colors/solarized.vim
+  - .vimrc
+  - .vundle.vimrc
+  - .zshrc
+# any file dir that needs to exist before dotfiles mapping
+# useful when you don't want to keep an entire dir mapped to git
+dotfiles_subdirs:
+  - ~/.vim/colors/
+
+# name: env-setup.02-cli-tools #################################################
+
+# NOTE: in linux we'll use the the community.general.homebrew* modules
+# name: geerlingguy.mac.homebrew
+homebrew_installed_packages:
+  - antigen
+  - awscli
+  - aws-shell
+  - bat
+  - composer
+  - direnv
+  - fzf
+  - gh
+  - go
+  - gitleaks
+  - jq
+  - libpq
+  - mysql-client
+  - neovim
+  - node
+  - nvm
+  - python
+  - redis
+  - rbenv
+  - rg
+  - ruby
+  - rust
+  - sops
+  - tmate
+  - vim
+  - zsh
+
+homebrew_taps:
+  - riboseinc/easy-rsa
+
+# name: env-setup.03-apps ######################################################
+
+# name: geerlingguy.mac.homebrew
+homebrew_cask_apps:
+  - chrome-devtools
+  - chromedriver
+  - docker
+  - google-chrome
+  - homebrew/cask-fonts/font-meslo-lg-nerd-font
+  - iterm2
+  - keeper-password-manager
+  - postico
+  - sequel-ace
+  - tunnelblick
+  - zoom
+
+# name: geerlingguy.mac.mas
+mas_installed_apps:
+  - { id: 803453959, name: "Slack" }
+  #- { id: 497799835, name: "Xcode" }
+
+mas_uninstalled_apps:
+  - { id: 408981434, name: "iMovie" }
+  - { id: 409183694, name: "Keynote" }
+  - { id: 409201541, name: "Pages" }
+  - { id: 409203825, name: "Numbers" }
+  - { id: 682658836, name: "GarageBand" }
+
+# NOTE: will need to sign to App Store
+mas_email: ""
+mas_password: ""
+
+# name: geerlingguy.mac.dock
+configure_dock: false
+
+dockitems_persist:
+  - name: "Docker"
+    path: "/Applications/Docker.app"
+    pos: 1
+  - name: "Google Chrome"
+    path: "/Applications/Google\ Chrome.app"
+    pos: 2
+  - name: "iTerm2"
+    path: "/Applications/iTerm.app/"
+    pos: 3
+  - name: "Keeper Password Manager"
+    path: "/Applications/Keeper Password Manager.app"
+    pos: 4
+  - name: "Postico 2"
+    path: "/Applications/Postico 2.app"
+    pos: 5
+  - name: "Sequel Ace"
+    path: "/Applications/Sequel Ace.app"
+    pos: 6
+  - name: "Slack"
+    path: "/Applications/Slack.app/"
+    pos: 7
+  - name: "Tunnelblick"
+    path: "/Applications/Tunnelblick.app"
+    pos: 8
+  - name: "Zoom"
+    path: "/Applications/zoom.us.app"
+    pos: 9
+
+dockitems_remove:
+  - Launchpad
+  - Messages
+  - Mail
+  - Maps
+  - Photos
+  - Calendar
+  - Contacts
+  - Reminders
+  - Notes
+  - Freeform
+  - TV
+  - Music
+  - Podcasts
+  - News
+
+# name: env-setup.04-packages ##################################################
+cargo_packages:
+  - name: bore
+
+composer_packages:
+  - name: phpunit/phpunit
+  - name: phploc/phploc
+  - name: psy/psysh
+  - name: squizlabs/php_codesniffer
+
+go_packages:
+  - name: github.com/ericchiang/pup@latest
+  - name: github.com/ericchiang/xpup@latest
+
+gem_packages:
+  - name: ghi
+
+npm_packages:
+  - name: commitizen
+  - name: eslint
+  - name: npmdoctor
+  - name: regexgen
+  - name: saucectl
+  - name: standard
+  - name: typescript
+  - name: yarn
+  - name: '@storybook/cli'
+  - name: '@vue/cli'
+
+pip_packages:
+  - name: mycli
+  - name: percol
+  - name: pynvim
+  - name: virtualenv
+  - name: yq
+

@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+
+# Set stop on error / enable debug
+set -euo pipefail
+#set -vx
+
+##{{{#######################################################################
+############################################################################
+# FUNCTIONS
+############################################################################
+
+# Clean Upon Exit
+cleanup() {
+    :
+}
+if [[ "${BASH_SOURCE[0]}" = "$0" ]]; then
+    trap cleanup EXIT
+fi
+
+
+# Print a string line wrapped in "===" headers
+printline() {
+    printf '%*s\n' "${COLUMNS:-$(tput cols)}" '' | tr ' ' =
+    printf "%s\n" "$1"
+    printf '%*s\n' "${COLUMNS:-$(tput cols)}" '' | tr ' ' =
+}
+
+#  Logging functions
+readonly LOG_FILE="/tmp/$(basename "$0").log"
+info()    { echo -e "[INFO]    $*" | tee -a "$LOG_FILE" >&2 ; }
+warning() { echo -e "[WARNING] $*" | tee -a "$LOG_FILE" >&2 ; }
+error()   { echo -e "[ERROR]   $*" | tee -a "$LOG_FILE" >&2 ; }
+fatal()   { echo -e "[FATAL]   $*" | tee -a "$LOG_FILE" >&2 ; exit 1 ; }
+
+# Accept Message & Error Code
+quit() {
+    if [ -z "$1" ]; then MESSAGE="${C_ERR}An error has occurred${C_RES}"; \
+    else MESSAGE=$1; fi
+    if [ -z "$2" ]; then
+        ERROR_CODE=1; else ERROR_CODE=$2; fi
+    echo -e "$MESSAGE" 1>&2; exit "$ERROR_CODE";
+}
+
+############################################################################
+# VARS
+############################################################################
+# Output colors.
+C_HIL='\033[4;33m'
+C_WAR='\033[0;33m'
+C_SUC='\033[0;32m'
+C_ERR='\033[0;31m'
+C_RES='\033[0;37m'
+ENVSETUP_INTERACT=${ENVSETUP_INTERACT:-"1"}
+ENVSETUP_OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+INSTALL_DIR=${ENVSETUP_INSTALL_DIR:-"$HOME/env-setup"}
+
+##}}}#######################################################################

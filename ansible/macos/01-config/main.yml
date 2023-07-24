@@ -1,0 +1,24 @@
+---
+- name: Retrieve all configuration files
+  hosts: all
+
+  vars_files:
+    - ../../../default.config.yml
+
+  pre_tasks:
+    - name: Ensure dotfile directories exist.
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+      loop:
+        "{{ dotfiles_subdirs }}"
+
+  roles:
+    - { role: geerlingguy.dotfiles, 
+        tags: ["print_action"] }
+    - { role: nass600.vundle,
+        tags: ["print_action"] }
+
+  tasks: []
+        
+  post_tasks: []

@@ -1,0 +1,47 @@
+---
+- name: Install Apps
+  hosts: all
+
+  vars_files:
+    - ../../../default.config.yml
+
+  pre_tasks:
+    - name: Set unlimited sudo timeout
+      lineinfile:
+        dest: /etc/sudoers.d/ssh_session_timeout
+        line: 'Defaults  env_reset,timestamp_timeout=-1'
+        create: yes
+        owner: root 
+        group: wheel 
+        mode: 0440
+        state: present
+        validate: 'visudo -c -f %s'
+      become: yes
+
+    - name: Open AppStore
+      shell: open /System/Applications/App\ Store.app
+      args:
+        executable: bash
+      loop: "{{ go_packages }}"
+
+    - name: Confirm App Store signin
+      ansible.builtin.pause:
+        prompt: "Please SIGN IN to the App Store before continuing then hit ENTER...."
+        echo: no
+
+  roles:
+    - { role: geerlingguy.mac.homebrew, 
+        homebrew_installed_packages: [],
+        tags: ["print_action"] }
+    - { role: geerlingguy.mac.mas, 
+        tags: ["print_action"] }
+    - { role: geerlingguy.mac.dock, tags: ["print_action"] }
+
+  tasks: []
+        
+  post_tasks:
+    - name: Remove unlimited sudo timeout config
+      file:
+        path: /etc/sudoers.d/ssh_session_timeout
+        state: absent
+      become: yes

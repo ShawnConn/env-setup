@@ -1,0 +1,72 @@
+---
+- name: Install Language Packages
+  hosts: all
+  gather_facts: true
+
+  vars_files:
+    - ../../../default.config.yml
+  vars:
+    brew_path: /home/linuxbrew/.linuxbrew/bin
+
+  pre_tasks: []
+
+  roles: []
+
+  tasks:
+    # NOTE: install Rust via Homebrew can be odd, perhaps use alternatives
+    - name: Install Rust packages
+      shell: |
+        eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+        $(/home/linuxbrew/.linuxbrew/bin/brew --prefix rust)/bin/cargo install "{{ item.name }}"
+      args:
+        chdir: "{{ brew_path }}"
+        executable: bash
+      loop: "{{ cargo_packages }}"
+      ignore_errors: true
+
+    - name: Install PHP packages
+      community.general.composer:
+        composer_executable: "{{ brew_path }}/composer"
+        executable: "{{ brew_path }}/php"
+        command: require
+        global_command: true
+        arguments: "{{ item.name }}"
+      loop: "{{ composer_packages }}"
+      ignore_errors: true
+
+    # NOTE: install Go via Homebrew can be odd, perhaps use alternatives
+    # https://github.com/suzuki-shunsuke/ansible-go-module alternative
+    - name: Install Go packages
+      shell: |
+        eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+        export GOROOT="$(/home/linuxbrew/.linuxbrew/bin/brew --prefix golang)/libexec" && go install "{{ item.name }}"
+      args:
+        chdir: "{{ brew_path }}"
+        executable: bash
+      loop: "{{ go_packages }}"
+      ignore_errors: true
+
+    - name: Install Ruby packages
+      community.general.gem:
+        executable: "{{ brew_path }}/gem"
+        name: "{{ item.name }}"
+        state: latest
+      loop: "{{ gem_packages }}"
+      ignore_errors: true
+
+    - name: Install NPM packages
+      community.general.npm:
+        executable: "{{ brew_path }}/npm"
+        name: "{{ item.name }}"
+        global: true
+      loop: "{{ npm_packages }}"
+      ignore_errors: true
+
+    - name: Install Python packages
+      ansible.builtin.pip:
+        executable: "{{ brew_path }}/pip3"
+        name: "{{ item.name }}"
+      loop: "{{ pip_packages }}"
+      ignore_errors: true
+        
+  post_tasks: []

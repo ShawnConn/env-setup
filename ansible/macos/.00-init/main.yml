@@ -1,0 +1,19 @@
+---
+- name: Configure env-setup Ansible 
+  hosts: all
+
+  vars_files:
+    - ../../../default.config.yml
+
+  pre_tasks: []
+
+  roles: []
+
+  tasks:
+    - name: Ensure Ansible downloads directory exists.
+      ansible.builtin.file:
+        path: "{{ downloads }}"
+        state: directory
+
+    - name: Marking env-setup Initialization
+      shell:  echo "{{ ansible_date_time.iso8601 }}" > .init

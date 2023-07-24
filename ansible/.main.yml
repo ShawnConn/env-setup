@@ -1,0 +1,20 @@
+---
+- name: NEW PLAYBOOK
+  hosts: all
+
+  vars_files:
+    - ../../../default.config.yml
+
+  pre_tasks: []
+
+  roles: []
+
+  tasks:
+    - name: NEW TASK
+      debug:
+        msg: "Hello, these are my dotfiles: {{ dotfiles_repo }}!"
+
+    - name: Marking env-setup playbook completion
+      shell:  echo "{{ ansible_date_time.iso8601 }}" > .init
+        
+  post_tasks: []

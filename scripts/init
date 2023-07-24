@@ -1,0 +1,209 @@
+#!/usr/bin/env bash
+
+# Set stop on error / enable debug
+set -euo pipefail
+#set -vx
+
+# TEST SCRIPT
+# URL="" && bash <(curl -sL $URL)
+
+############################################################################
+# BOOTSTRAP ENVSETUP
+############################################################################
+
+##{{{#######################################################################
+############################################################################
+# FUNCTIONS
+############################################################################
+
+# Clean Upon Exit
+cleanup() {
+    :
+}
+if [[ "${BASH_SOURCE[0]}" = "$0" ]]; then
+    trap cleanup EXIT
+fi
+
+# Print startup header
+header() {
+    cat << "SPLASH"
+SPLASH
+    echo -e "To begin we'll need to...\n"
+    if [[ $SUGGEST_GIT == "1" ]]; then
+        echo -e "[ ] install Git"
+    fi
+    if [[ $SUGGEST_KEY == "1" ]]; then
+        echo -e "[ ] install an SSH key to ${C_WAR}$ENVSETUP_KEY_FILE${C_RES}"
+    fi
+    echo -e "[ ] install env-setup to ${C_WAR}$INSTALL_DIR${C_RES}\n"
+}
+
+# Print a string line wrapped in "===" headers
+printline() {
+    printf '%*s\n' "${COLUMNS:-$(tput cols)}" '' | tr ' ' =
+    printf "%s\n" "$1"
+    printf '%*s\n' "${COLUMNS:-$(tput cols)}" '' | tr ' ' =
+}
+
+#  Logging functions
+readonly LOG_FILE="/tmp/$(basename "$0").log"
+info()    { echo -e "[INFO]    $*" | tee -a "$LOG_FILE" >&2 ; }
+warning() { echo -e "[WARNING] $*" | tee -a "$LOG_FILE" >&2 ; }
+error()   { echo -e "[ERROR]   $*" | tee -a "$LOG_FILE" >&2 ; }
+fatal()   { echo -e "[FATAL]   $*" | tee -a "$LOG_FILE" >&2 ; exit 1 ; }
+
+# Accept Message & Error Code
+quit() {
+    if [ -z "$1" ]; then MESSAGE="${C_ERR}An error has occurred${C_RES}"; \
+    else MESSAGE=$1; fi
+    if [ -z "$2" ]; then
+        ERROR_CODE=1; else ERROR_CODE=$2; fi
+    echo -e "$MESSAGE" 1>&2; exit "$ERROR_CODE";
+}
+
+############################################################################
+# VARS
+############################################################################
+# Output colors.
+C_HIL='\033[4;33m'
+C_WAR='\033[0;33m'
+C_SUC='\033[0;32m'
+C_ERR='\033[0;31m'
+C_RES='\033[0;37m'
+ENVSETUP_INTERACT=${ENVSETUP_INTERACT:-"1"}
+ENVSETUP_OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+ENVSETUP_REPO_HTTPS="https://github.com/Luciditi/env-setup.git"
+ENVSETUP_REPO_SSH="git@github.com:Luciditi/env-setup.git"
+ENVSETUP_KEY_FILE=${ENVSETUP_KEY_FILE:-"$HOME/.ssh/id_rsa"}
+ENVSETUP_ID="env-setup:$USER@$(hostname)"
+ENVSETUP_KEY_FILE_COMMENT=${ENVSETUP_KEY_FILE_COMMENT:-"$ENVSETUP_ID"}
+INSTALL_DIR=${ENVSETUP_INSTALL_DIR:-"$HOME/env-setup"}
+TMP_CLI_FILE="/tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress;"
+
+##}}}#######################################################################
+
+#/ Usage: $SCRIPT
+#/
+#/ Examples:
+#/ Options:
+#/   --help/-h: Display this help message
+SCRIPT=$(basename "$0")
+usage() {
+    grep '^#/' "$0" | cut -c4- | sed -e "s/\$SCRIPT/$SCRIPT/g" ; exit 0 ;
+}
+expr "$*" : ".*--help" > /dev/null && usage
+
+# Handle options
+# Add options x: - required arg
+while getopts 'h' FLAG; do
+    case "${FLAG}" in
+        h) usage; exit 0 ;;
+        *) : ;;
+    esac
+done
+
+############################################################################
+# MAIN
+############################################################################
+
+# 1. INFORM
+SUGGEST_GIT=$(if [[ -x "$(command -v git)" ]]; then \
+    echo "0"; else echo "${ENVSETUP_SUGGEST_GIT:-1}"; fi)
+# Apple is a special snowflake
+if [[ $ENVSETUP_OS =~ "darwin"* ]]; then
+    if ! xcode-select -p &> /dev/null; then
+        SUGGEST_GIT=1
+    fi
+fi
+SUGGEST_KEY=$(if [[ -f "$ENVSETUP_KEY_FILE" ]]; then \
+    echo "0"; else echo "${ENVSETUP_SUGGEST_KEY:-1}"; fi)
+header
+if [[ $ENVSETUP_INTERACT == "1" ]]; then
+    read -r -p "Continue? (yes/no): " ANSWER; [[ $ANSWER == "yes" ]] || exit 0
+    echo -e "\n"
+fi
+
+# 2. GIT IT
+if [[ $SUGGEST_GIT == "1" ]]; then
+    echo -e "${C_HIL}Installing Git...${C_RES}"
+    case "$ENVSETUP_OS" in
+        "darwin"* )
+                echo -e "Install Git via XCode CLI Tool (accept on GUI)...\n"
+                touch "$TMP_CLI_FILE"
+                PROD=$(softwareupdate -l    | \
+                    grep "\*.*Command Line" | \
+                    tail -n 1               | \
+                    sed 's/^[^C]* //')
+                softwareupdate -i "$PROD" --verbose;
+                rm "$TMP_CLI_FILE"
+            ;;
+        "linux"* )
+                if [ -x "$(command -v apk)" ]; then
+                    sudo apk add git
+                elif [ -x "$(command -v apt-get)" ]; then
+                    sudo apt-get install git
+                elif [ -x "$(command -v dnf)" ]; then
+                    sudo dnf install git
+                elif [ -x "$(command -v zypper)" ]; then
+                    sudo zypper in git-core
+                else
+                    echo -e "${C_WAR}No Package Manager${C_RES}\n"
+                    exit 1
+                fi
+            ;;
+        * )
+                echo -e "${C_WAR}Unsupported OS${C_RES}\n"
+                exit 1
+            ;;
+    esac
+    echo -e "\n"
+fi
+
+# 3. GRAB KEYS
+if [[ $SUGGEST_KEY == "1" ]]; then
+    echo -e "${C_HIL}Creating $ENVSETUP_KEY_FILE...${C_RES}"
+    ssh-keygen -f "$ENVSETUP_KEY_FILE" \
+        -t rsa -b 4096 -N '' -C "$ENVSETUP_KEY_FILE_COMMENT"
+    cat "$ENVSETUP_KEY_FILE.pub" >> "$HOME/.ssh/authorized_keys"
+    echo -e "\n"
+fi
+
+# 4. INIT SHELL
+PUB_KEY=$(cat "$ENVSETUP_KEY_FILE.pub")
+if [[ $ENVSETUP_INTERACT == "1" ]]; then
+    if [ -x "$(command -v pbcopy)" ]; then
+        echo "$PUB_KEY" | pbcopy
+    elif [ -x "$(command -v xclip)" ]; then
+        echo "$PUB_KEY" | xclip -sel clip
+    fi
+
+    echo -e "Please confirm that...\n"
+    echo -e "[ ] $ENVSETUP_REPO_SSH / $ENVSETUP_REPO_HTTPS is accessible"
+    echo -e "[ ] ${C_WAR}$PUB_KEY${C_RES} is allowed for GitHub access
+        (https://github.com/settings/keys)"
+    read -r -p "Continue? (yes/no): " ANSWER; [[ $ANSWER == "yes" ]] || exit 0
+    echo -e "\n"
+else
+    echo -e "${C_WAR}$PUB_KEY${C_RES} needs GitHub access
+        (https://github.com/settings/keys)"
+fi
+
+
+echo -e "${C_HIL}Installing env-setup to $INSTALL_DIR...${C_RES}\n"
+if [[ ! -d "$INSTALL_DIR" ]]; then
+    if [[ $ENVSETUP_INTERACT == "1" ]]; then
+        git clone "$ENVSETUP_REPO_SSH" "$INSTALL_DIR"
+    else
+        export GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no"
+        git clone "$ENVSETUP_REPO_SSH" "$INSTALL_DIR"
+    fi
+fi
+echo -e "\n"
+
+echo "alias env-setup=\"\$HOME/env-setup/scripts/env-setup\"" \
+    >> "$HOME/.profile"
+echo "alias env-setup=\"\$HOME/env-setup/scripts/env-setup\"" \
+    >> "$HOME/.zprofile"
+
+echo -e "${C_SUC}env-setup${C_RES} has been installed."
+echo -e "Restart your shell and run ${C_SUC}env-setup${C_RES}."

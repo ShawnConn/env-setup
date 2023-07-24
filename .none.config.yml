@@ -1,0 +1,68 @@
+# Default env-setup playbook vars
+#
+# This YAML contains the list overridable variables in the env-setup playbooks.
+# Copy this file to config.yml and any edited value will be used in place of 
+# its default.
+#
+# USAGE EXAMPLE: replace the default dotfiles with your own.
+# cp default.config.yml config.yml
+# awk '{sub(/dotfiles_repo:.*/,"dotfiles_repo:\"https://github.com/my_github_screenname/dotfiles.git\""); print}' config.yml
+# env-setup
+---
+downloads: ~/.ansible-downloads/
+
+# name: env-setup.01-config ####################################################
+
+# name: geerlingguy.dotfiles
+# Find dotfiles via $(find . -type f | grep -vE '\.\/\.git\/' | sed -e 's/\.\///g')
+dotfiles_repo: https://github.com/luciditi/env-setup-dotfiles
+dotfiles_repo_accept_hostkey: yes
+dotfiles_repo_local_destination: ~/env-setup-dotfiles
+dotfiles_repo_version: main
+dotfiles_files: []
+# any file dir that needs to exist before dotfiles mapping
+# useful when you don't want to keep an entire dir mapped to git
+dotfiles_subdirs: []
+
+# name: env-setup.02-cli-tools #################################################
+
+# NOTE: in linux we'll use the the community.general.homebrew* modules
+# name: geerlingguy.mac.homebrew
+homebrew_installed_packages: []
+
+homebrew_taps: []
+
+# name: env-setup.03-apps ######################################################
+
+# name: geerlingguy.mac.homebrew
+homebrew_cask_apps: []
+
+# name: geerlingguy.mac.mas
+mas_installed_apps: []
+
+mas_uninstalled_apps: []
+
+# NOTE: Will prompt for MAS signin
+mas_email: ""
+mas_password: ""
+
+# name: geerlingguy.mac.dock
+configure_dock: false
+
+dockitems_persist: []
+
+dockitems_remove: []
+
+# name: env-setup.04-packages ##################################################
+cargo_packages: []
+
+composer_packages: []
+
+go_packages: []
+
+gem_packages: []
+
+npm_packages: []
+
+pip_packages: []
+

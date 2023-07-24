@@ -1,0 +1,15 @@
+{
+  "scripts": {
+    "config": "envsubst < .wrangler.toml.example > wrangler.toml && cat wrangler.toml",
+    "dev": "wrangler dev src/index.ts",
+    "deploy": "wrangler deploy --minify src/index.ts",
+    "delete": "wrangler delete src/index.ts"
+  },
+  "dependencies": {
+    "hono": "^3.2.7"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20230518.0",
+    "wrangler": "^3.1.0"
+  }
+}

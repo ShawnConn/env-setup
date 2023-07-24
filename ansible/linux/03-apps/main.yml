@@ -1,0 +1,54 @@
+---
+- name: Install Apps
+  hosts: all
+  become: true
+
+  vars_files:
+    - ../../../default.config.yml
+
+  vars:
+    packages:
+      # @TODO use homebrew_cask_apps to map equivalents in linux
+      # e.g., google-chrome ~~> chromium-browser
+      chrome-devtools: "ansible"
+      chromedriver: "ansible"
+      docker-desktop: "ansible"
+      docker: "ansible"
+      google-chrome: "chromium-browser"
+      homebrew/cask-fonts/font-meslo-lg-nerd-font: "chromium-browser"
+      iterm2: "ansible"
+      keeper-password-manager: "ansible"
+      postico: "ansible"
+      sequel-ace: "ansible"
+      tunnelblick: "ansible"
+      zoom: "ansible"
+
+  pre_tasks:
+    - name: Set unlimited sudo timeout
+      lineinfile:
+        dest: /etc/sudoers.d/ssh_session_timeout
+        line: 'Defaults  env_reset,timestamp_timeout=-1'
+        create: yes
+        owner: root 
+        group: root 
+        mode: 0440
+        state: present
+        validate: 'visudo -c -f %s'
+      become: yes
+
+  roles: []
+
+  tasks:
+    - name: Install configured applications
+      ansible.builtin.package:
+        name: "{{ packages[item] }}"
+        state: present
+      loop: "{{ homebrew_cask_apps }}"
+      ignore_errors: true
+        
+  post_tasks:
+    - name: Remove unlimited sudo timeout config
+      file:
+        path: /etc/sudoers.d/ssh_session_timeout
+        state: absent
+      become: yes

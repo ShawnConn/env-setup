@@ -1,0 +1,256 @@
+#!/usr/bin/env bash
+
+# Set stop on error / enable debug
+set -euo pipefail
+
+############################################################################
+# ENVSETUP
+############################################################################
+
+##{{{#######################################################################
+############################################################################
+# FUNCTIONS
+############################################################################
+
+# Config env-setup
+config() {
+    ENVSETUP_CONFIG_MSG="Select an env-setup config (enter q to quit):"
+    CONFIG=${1:-""}
+    CFILE="$INSTALL_DIR/config.yml"
+    CONFIG_TYPE=""
+
+    if [[ -f "$CFILE" ]]; then
+        if [[ -L "$CFILE" ]]; then
+            # shellcheck disable=SC2012
+            FILE="$(ls -l "$CFILE" | cut -d'>' -f2 | xargs)"
+            FILE="$(basename "$FILE")"
+            # shellcheck disable=SC2001
+            CONFIG_TYPE=$(echo "$FILE" | sed 's/.\(.*\).config.yml/\1/')
+        else
+            CONFIG_TYPE="custom"
+        fi
+    else
+        CONFIG_TYPE="default"
+    fi
+
+    echo -e "${C_SUC}Config currently set to ${C_WAR}$CONFIG_TYPE${C_RES}"
+    echo -e "${C_SUC}$ENVSETUP_CONFIG_MSG${C_RES}\n"
+    if [[ -z "$CONFIG" ]]; then
+        OPTIONS="none mini default most custom"
+        select CONFIG in $OPTIONS; do
+            break
+        done
+    fi
+
+    if [[ -z "$CONFIG" ]]; then
+        echo -e "${C_WAR}Quit${C_RES}\n"
+        exit 0
+    fi
+    if [[ "$CONFIG" == "custom" ]]; then
+        if [[ -f "$CFILE" ]]; then
+            rm "$CFILE"
+        fi
+        echo -e "${C_SUC}Select starter for custom config:${C_RES}\n"
+        OPTIONS="none mini default most"
+        select CONFIG in $OPTIONS; do
+            cp "$INSTALL_DIR/.$CONFIG.config.yml" "$CFILE"
+            break
+        done
+        echo -e "${C_SUC}Starter custom config set${C_RES}"
+    else
+        if [[ -f "$CFILE" ]]; then
+            rm "$CFILE"
+        fi
+        if [[ "$CONFIG" != "default" ]]; then
+            ln -s "$INSTALL_DIR/.$CONFIG.config.yml" "$CFILE"
+        fi
+        echo -e "${C_SUC}Config set to ${C_WAR}$CONFIG${C_RES}"
+    fi
+}
+
+# Update env-setup
+update() {
+    cd "$INSTALL_DIR"
+    echo -e "\n${C_HIL}Updating $(basename "$INSTALL_DIR")...${C_RES}"
+    git stash -m "env-setup-update-$(date +%s)"
+    git pull --rebase
+    git stash pop || true
+    DOTFILE=$(grep 'repo_local_destination' "$INSTALL_DIR/default.config.yml")
+    DOTFILE_PATH=$(echo "$DOTFILE" | cut -d':' -f2 | xargs)
+    REPO="$(basename "${DOTFILE_PATH/'~'/$HOME}")"
+    echo -e "\n${C_HIL}Updating $REPO...${C_RES}"
+    cd "${DOTFILE_PATH/'~'/$HOME}"
+    git stash -m "env-setup-dotfile-update-$(date +%s)"
+    git pull --rebase
+    git stash pop || true
+}
+
+# Run env-setup playbook
+run_playbook() {
+    PLAYBOOK_NAME=${1:-""}
+    PLAYBOOK_DIR=${2:-""}
+
+    if [[ -d "$PLAYBOOK_DIR" ]]; then
+        echo -e "\n${C_HIL}Running $PLAYBOOK_NAME playbook...${C_RES}"
+        PWD=$(pwd)
+        cd "$PLAYBOOK_DIR"
+
+        if [[ -f requirements.yml ]]; then
+            # shellcheck disable=SC2086
+            ansible-galaxy install $ANSIBLE_VERBOSE -r requirements.yml
+        fi
+        if [[ -n "$ANSIBLE_SUDO" ]]; then
+            echo -e "\n${C_WAR}Enter password for install permissions${C_RES}"
+        fi
+        if [[ -f ../../../config.yml ]]; then
+            ANSIBLE_EXTRA_VARS="-e @../../../config.yml"
+        else
+            ANSIBLE_EXTRA_VARS=""
+        fi
+
+        # shellcheck disable=SC2086
+        ansible-playbook main.yml $ANSIBLE_VERBOSE \
+            -i inventory $ANSIBLE_SUDO             \
+            $ANSIBLE_EXTRA_VARS
+        cd "$PWD"
+        echo -e "\n${C_SUC}$PLAYBOOK_NAME playbook completed!${C_RES}"
+    else
+        echo -e "\n${C_ERR}Could not find the $PLAYBOOK_NAME playbook!${C_RES}"
+        exit 1
+    fi
+}
+
+##}}}#######################################################################
+
+
+#/ Usage: $SCRIPT [PLAYBOOK]
+#/
+#/
+#/   <PLAYBOOK>: An optional playbook name for env-setup to run.
+#/
+#/ Examples:
+#/
+#/   $SCRIPT
+#/      Start $SCRIPT to select playbooks to setup.
+#/   $SCRIPT -u
+#/      Update $SCRIPT.
+#/   $SCRIPT 04-my-playbook
+#/      Have $SCRIPT run the "04-my-playbook" playbook.
+#/
+#/ Options:
+#/   --help/-h: Display this help message
+#/          -u: Update env-setup from its remote Git source
+#/          -v: Run env-setup with verbose mode
+SCRIPT=$(basename "$0")
+SCRIPTS_DIR="$(dirname "$0")"
+# shellcheck source=/dev/null
+source "$SCRIPTS_DIR/_common"
+usage() {
+    grep '^#/' "$0" | cut -c4- | sed -e "s/\$SCRIPT/$SCRIPT/g" ; exit 0 ;
+}
+expr "$*" : ".*--help" > /dev/null && usage
+
+# Handle options
+# Add options x: - required arg
+while getopts 'chuv' FLAG; do
+    case "${FLAG}" in
+        c) shift "$((OPTIND-1))"; config "${1:-""}"; exit 0 ;;
+        h) usage; exit 0 ;;
+        u) update; exit 0 ;;
+        v)
+            set -vx
+            ANSIBLE_VERBOSE="-vvv"
+            ANSIBLE_STDOUT_CALLBACK="debug"
+            shift "$((OPTIND-1))"
+            ;;
+        *) : ;;
+    esac
+done
+
+############################################################################
+# VARS
+############################################################################
+ANSIBLE_SUDO="-K"
+ANSIBLE_VERBOSE=""
+# unixy | dense | debug | yaml | selective
+export ANSIBLE_STDOUT_CALLBACK=${ANSIBLE_STDOUT_CALLBACK:-"unixy"}
+export ANSIBLE_ROLES_PATH="$HOME/.ansible/roles"
+ENVSETUP_SELECT_MSG="Select an env-setup playbook (enter q to quit):"
+INIT_PLAYBOOK=".00-init"
+PLAYBOOK=${1:-""}
+
+############################################################################
+# MAIN
+############################################################################
+
+SUGGEST_ANSIBLE=$(if [[ -x "$(command -v ansible)" ]]; then \
+    echo "0"; else echo "${ENVSETUP_SUGGEST_ANSIBLE:-1}"; fi)
+if [[ $SUGGEST_ANSIBLE == "1" ]]; then
+    echo -e "To begin we'll need to...\n"
+    if [[ $ENVSETUP_OS =~ "darwin"* ]]; then
+        SUGGEST_PIP=$(if [[ -x "$(command -v pip3)" ]]; then \
+            echo "0"; else echo "${ENVSETUP_SUGGEST_PIP:-1}"; fi)
+        if [[ $SUGGEST_PIP == "1" ]]; then
+            echo -e "[ ] install Pip"
+        fi
+    fi
+    echo -e "[ ] install Ansible"
+    if [[ $ENVSETUP_INTERACT == "1" ]]; then
+        read -r -p "Continue? (yes/no): " ANSWER
+        [[ $ANSWER == "yes" ]] || exit 0
+        echo -e "\n"
+    fi
+fi
+
+case "$ENVSETUP_OS" in
+    "darwin"* )
+        if [[ $SUGGEST_ANSIBLE == "1" ]]; then
+            "$SCRIPTS_DIR/macos/install-ansible"
+        fi
+        ABSOLUTE_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" \
+            && pwd)/$(basename "${BASH_SOURCE[0]}")"
+        PLAYBOOKS="$(dirname "$(dirname "$ABSOLUTE_PATH")")/ansible/macos"
+        ;;
+    "linux"* )
+        if [[ $SUGGEST_ANSIBLE == "1" ]]; then
+            "$SCRIPTS_DIR/linux/install-ansible"
+        fi
+        PLAYBOOKS="$(dirname "$(realpath "$SCRIPTS_DIR")")/ansible/linux"
+        ;;
+    * )
+        echo -e "${C_WAR}Unsupported OS${C_RES}\n"
+        exit 1
+        ;;
+esac
+
+if [[ ! -f "$PLAYBOOKS/$INIT_PLAYBOOK/.init" ]]; then
+    run_playbook "Initial" "$PLAYBOOKS/$INIT_PLAYBOOK"
+fi
+
+if [[ -z "$PLAYBOOK" ]]; then
+    echo -e "${C_SUC}$ENVSETUP_SELECT_MSG${C_RES}\n"
+    # shellcheck disable=SC2116,SC2046
+    # ls -d /home/ubuntu/env-setup/ansible/linux/* | xargs -n1 basename
+    OPTIONS=$(find "$PLAYBOOKS/"* -type d -print0 | xargs -0 -n1 basename)
+    select PLAYBOOK in $OPTIONS; do
+        if [[ "$PLAYBOOK" == "" ]]; then
+            echo -e "${C_WAR}Quit${C_RES}\n"
+            exit 0
+        else
+            run_playbook "$PLAYBOOK" "$PLAYBOOKS/$PLAYBOOK"
+            echo -e "\n${C_SUC}$PLAYBOOK completed!${C_RES}"
+            exit 0
+        fi
+        echo -e "${C_SUC}$ENVSETUP_SELECT_MSG${C_RES}\n"
+    done
+else
+    if [[ "$PLAYBOOK" == "all" ]]; then
+        echo -e "${C_SUC}Running all playbooks:${C_RES}\n"
+        OPTIONS=$(find "$PLAYBOOKS/"* -type d -print0 | xargs -0 -n1 basename)
+        for PLAYBOOK in $OPTIONS; do
+            run_playbook "$PLAYBOOK" "$PLAYBOOKS/$PLAYBOOK"
+        done
+    else
+        run_playbook "$PLAYBOOK" "$PLAYBOOKS/$PLAYBOOK"
+    fi
+fi

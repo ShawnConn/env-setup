@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+# Set stop on error / enable debug
+set -euo pipefail
+#set -vx
+
+############################################################################
+# MACOS INSTALL ANSIBLE
+############################################################################
+
+SCRIPTS_DIR="$(dirname "$0")"
+# shellcheck source=/dev/null
+source "$SCRIPTS_DIR/../_common"
+
+############################################################################
+# MAIN
+############################################################################
+
+echo -e "${C_HIL}Installing Ansible...${C_RES}"
+
+if [ -x "$(command -v apk)" ]; then
+    sudo apk add ansible
+elif [ -x "$(command -v apt-get)" ]; then
+    sudo apt update --yes
+    sudo apt install software-properties-common
+    sudo add-apt-repository --yes --update ppa:ansible/ansible
+    sudo apt install --yes ansible
+elif [ -x "$(command -v dnf)" ]; then
+    sudo dnf install -y ansible
+elif [ -x "$(command -v zypper)" ]; then
+    sudo zypper --non-interactive in ansible
+else
+    echo -e "${C_WAR}No Package Manager${C_RES}\n"
+    exit 1
+fi
