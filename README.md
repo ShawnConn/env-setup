@@ -12,7 +12,7 @@ Get started with `env-setup`:
   - `mini`: You want a **minimum** config.
   - `default`: You want a **workable default** config.
   - `most`: You want it **all**.
-  - `custom`: You want a **new** `config.yml` ** config started.
+  - `custom`: You want a **new** `config.yml` config started.
 3. Run: `env-setup`
 
 ## Usage
