@@ -76,13 +76,14 @@ update() {
     git pull --rebase
     git stash pop || true
     DOTFILE=$(grep 'repo_local_destination' "$INSTALL_DIR/default.config.yml")
-    DOTFILE_PATH=$(echo "$DOTFILE" | cut -d':' -f2 | xargs)
-    REPO="$(basename "${DOTFILE_PATH/'~'/$HOME}")"
-    echo -e "\n${C_HIL}Updating $REPO...${C_RES}"
-    cd "${DOTFILE_PATH/'~'/$HOME}"
-    git stash -m "env-setup-dotfile-update-$(date +%s)"
-    git pull --rebase
-    git stash pop || true
+    while read -r DOTFILE_PATH; do
+        REPO="$(basename "${DOTFILE_PATH/'~'/$HOME}")"
+        echo -e "\n${C_HIL}Updating $REPO...${C_RES}"
+        cd "${DOTFILE_PATH/'~'/$HOME}"
+        git stash -m "env-setup-dotfile-update-$(date +%s)"
+        git pull --rebase
+        git stash pop || true
+    done < <(echo "$DOTFILE" | cut -d':' -f2)
 }
 
 # Run env-setup playbook

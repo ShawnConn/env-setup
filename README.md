@@ -37,6 +37,7 @@ values in `config.yml` to fit what your environment setup needs.
   - `mini`: You want a environment setup with only the basic functionality (scripts, Homebrew, & Ansible).
   - `default`: You **workable default** environment setup that will be used semi-often.
   - `most`: You want it **all** in a environment setup that you'll use often.
+  - `custom`: You want a **custom** `config.yml` that you'll specify on your own.
 
 <img align="right" width="250" src="https://github.com/Luciditi/env-setup/assets/1087111/7d30e859-b7c6-4f21-b35d-879ae550a4f7">
 
@@ -53,26 +54,27 @@ Running `env-setup -u` will update the installed repo alongside the installed
 
 ### Playbooks
 An Ansible _playbook_ is a series of _tasks_ that need to run to get to your wanted setup.
-`env-setup` has 4 main playbooks with other optional ones based on your needs.
+`env-setup` has 5 main playbooks with other optional ones based on your needs.
 
 - `01-config`: Configure your [dotfiles](https://dotfiles.github.io/) for your app & CLI configuration (defaults to [env-setup-dotfiles](https://github.com/Luciditi/env-setup-dotfiles) if not overridden)
 - `02-cli-tools`: Install CLI tools via [Homebrew formulas](https://formulae.brew.sh/formula/)
 - `03-apps`: Install GUI applications via [Homebrew casks](https://formulae.brew.sh/cask/) & other means (e.g., Linux package manager & App Store via [mas](https://github.com/mas-cli/mas))
 - `04-packages`: Install common programming language (Go/Node/PHP/Ruby/Rust/Python) dependencies for development tooling.
+- `05-repos`: Clones Git repos used for active development (projects) or reference (vendors).
 
 See **custom playbook** section for adding other playbooks as needed.
 
 ## Custom Playbook
 To get started with a custom playbook: 
 
-- run `./scripts/add-playbook 04-my-playbook`
+- run `./scripts/add-playbook 09-my-playbook`
 
 This will setup the directory structure in the `ansible` dir and make it 
 selectable in the `env-setup` tool.
 
 From there, you can edit:
-- `ansible/*/04-my-playbook/main.yml` to add your playbook tasks
-- `ansible/*/04-my-playbook/requirements.yml` to add any ansible-galaxy dependencies for the playbook.
+- `ansible/*/09-my-playbook/main.yml` to add your playbook tasks
+- `ansible/*/09-my-playbook/requirements.yml` to add any ansible-galaxy dependencies for the playbook.
 
 ## Development
 See the development [README](DEV-README.md).

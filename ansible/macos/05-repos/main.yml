@@ -1,0 +1,85 @@
+---
+- name: Retrieve all git repos
+  hosts: all
+
+  vars_files:
+    - ../../../default.config.yml
+
+  pre_tasks: []
+
+  roles: []
+
+  tasks:
+    - name: Create project directories
+      file:
+        path: "{{ item }}"
+        state: directory
+      with_items:
+        - "{{ git_repo_project_dir }}"
+        - "{{ git_repo_vendors_dir }}"
+
+    - name: Create vendor directories
+      file:
+        path: "{{ git_repo_vendors_dir }}/{{ item.name }}"
+        state: directory
+      with_items: "{{ git_repo_vendors }}"
+
+    - name: Clone project repos
+      git:
+        accept_hostkey: yes
+        depth: "{{ item.depth|default(omit) }}"
+        repo: "{{ item.url }}"
+        dest: "{{ git_repo_project_dir }}/{{ item.name }}"
+        update: no
+      with_items: "{{ git_repo_projects }}" 
+      ignore_errors: yes
+
+    - name: Symlink project repos
+      file:
+        mode: 0755
+        path: "{{ item.symlink | dirname }}"
+        state: directory
+      with_items: "{{ git_repo_projects }}" 
+      when: item.symlink is defined
+
+    - name: Symlink project repos
+      file:
+        dest: "{{ item.symlink }}"
+        mode: 0755
+        src: "{{ git_repo_project_dir }}/{{ item.name }}"
+        state: link
+      with_items: "{{ git_repo_projects }}" 
+      when: item.symlink is defined
+
+    - name: Set project repo upstream remotes
+      command: git remote add upstream "{{ item.upstream }}"
+      args:
+        chdir: "{{ git_repo_project_dir }}/{{ item.name }}"
+      with_items: "{{ git_repo_projects }}" 
+      when: item.upstream is defined
+      ignore_errors: yes
+
+    - name: Clone vendor repos
+      git:
+        accept_hostkey: yes
+        depth: "{{ item.1.depth|default(omit) }}"
+        repo: "{{ item.0.host }}:{{ item.0.name }}/{{ item.1.name }}.git"
+        dest: "{{ git_repo_vendors_dir }}/{{ item.0.name }}/{{ item.1.name }}"
+        update: yes
+      with_subelements:
+        - "{{ git_repo_vendors }}"
+        - projects
+      ignore_errors: yes
+
+    - name: Symlink vendor repos
+      file:
+        dest: "{{ item.1.symlink }}"
+        mode: 0755
+        src: "{{ git_repo_vendors_dir }}/{{ item.0.name }}/{{ item.1.name }}"
+        state: link
+      with_subelements:
+        - "{{ git_repo_vendors }}"
+        - projects
+      when: item.1.symlink is defined
+            
+  post_tasks: []

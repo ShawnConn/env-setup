@@ -15,11 +15,11 @@ downloads: ~/.ansible-downloads/
 
 # name: geerlingguy.dotfiles
 # Find dotfiles via $(find . -type f | grep -vE '\.\/\.git\/' | sed -e 's/\.\///g')
-dotfiles_repo: https://github.com/luciditi/env-setup-dotfiles
-dotfiles_repo_accept_hostkey: yes
-dotfiles_repo_local_destination: ~/env-setup-dotfiles
-dotfiles_repo_version: main
-dotfiles_files:
+pub_dotfiles_repo: git@github.com:Luciditi/env-setup-dotfiles.git
+pub_dotfiles_repo_accept_hostkey: yes
+pub_dotfiles_repo_local_destination: ~/env-setup-dotfiles
+pub_dotfiles_repo_version: main
+pub_dotfiles_files:
   - .bash_profile
   - .direnvrc
   - .fzf.zsh
@@ -32,8 +32,20 @@ dotfiles_files:
   - .zshrc
 # any file dir that needs to exist before dotfiles mapping
 # useful when you don't want to keep an entire dir mapped to git
-dotfiles_subdirs:
+pub_dotfiles_subdirs: 
   - ~/.vim/colors/
+
+# OPTIONAL FOR NON PUBLIC DOTFILES
+# name: geerlingguy.dotfiles
+# Find dotfiles via $(find . -type f | grep -vE '\.\/\.git\/' | sed -e 's/\.\///g')
+prv_dotfiles_repo: git@github.com:Luciditi/env-setup-dotfiles.git
+prv_dotfiles_repo_accept_hostkey: yes
+prv_dotfiles_repo_local_destination: ~/env-setup-prv-dotfiles
+prv_dotfiles_repo_version: main
+prv_dotfiles_files: []
+# any file dir that needs to exist before dotfiles mapping
+# useful when you don't want to keep an entire dir mapped to git
+prv_dotfiles_subdirs: []
 
 # name: env-setup.02-cli-tools #################################################
 
@@ -99,3 +111,19 @@ npm_packages: []
 
 pip_packages: []
 
+# name: env-setup.05-repos #####################################################
+
+git_repo_project_dir: ~/env-setup-git-repos
+git_repo_projects:
+  - name: env-setup
+    url: git@github.com:Luciditi/env-setup.git
+    upstream: git@github.com:Luciditi/env-setup.git
+    symlink: ~/Documents/TheBlock/projects/devops/env-setup
+
+git_repo_vendors_dir: ~/env-setup-vendors
+git_repo_vendors:
+  - name: luciditi
+    host: git@github.com
+    projects:
+      - name: env-setup-dotfiles
+        depth: 1
