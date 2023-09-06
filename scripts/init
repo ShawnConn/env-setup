@@ -128,14 +128,10 @@ if [[ $SUGGEST_GIT == "1" ]]; then
     echo -e "${C_HIL}Installing Git...${C_RES}"
     case "$ENVSETUP_OS" in
         "darwin"* )
-                echo -e "Install Git via XCode CLI Tool (accept on GUI)...\n"
-                touch "$TMP_CLI_FILE"
-                PROD=$(softwareupdate -l    | \
-                    grep "\*.*Command Line" | \
-                    tail -n 1               | \
-                    sed 's/^[^C]* //')
-                softwareupdate -i "$PROD" --verbose;
-                rm "$TMP_CLI_FILE"
+                echo -e "Install Git via XCode CLI Tool (accept on GUI and hit enter after installation)...\n"
+                xcode-select --install
+                read -r -p "" ANSWER
+                echo -e "\n"
             ;;
         "linux"* )
                 if [ -x "$(command -v apk)" ]; then
