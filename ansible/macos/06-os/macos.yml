@@ -1,0 +1,17 @@
+---
+- name: Check for macos config script
+  stat:
+    path: "{{ envsetup_os_macos_config_script }}"
+  register: macos_script
+
+- name: Set macos config script as executable
+  file:
+    path: "{{ envsetup_os_macos_config_script }}"
+    state: file
+    mode: 0755
+  when: macos_script.stat.exists
+
+- name: Apply macos config script
+  command: "{{ envsetup_os_macos_config_script }}"
+  when: macos_script.stat.exists
+

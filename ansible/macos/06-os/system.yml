@@ -1,0 +1,17 @@
+---
+
+- name: Close System Preferences
+  shell: "osascript -e 'tell application \"System Preferences\" to quit'"
+
+- name: Set hostname
+  shell: |
+    sudo scutil --set ComputerName "{{ envsetup_os_hostname }}"
+    sudo scutil --set HostName "{{ envsetup_os_hostname }}"
+    sudo scutil --set LocalHostName "{{ envsetup_os_hostname }}"
+    sudo defaults write /Library/Preferences/SystemConfiguration/com.apple.smb.server NetBIOSName -string "{{ envsetup_os_hostname }}"
+  become: yes
+
+- name: Disable the sound effects on boot
+  shell: nvram SystemAudioVolume=" "
+  become: yes
+

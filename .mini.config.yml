@@ -22,7 +22,6 @@ pub_dotfiles_repo_version: main
 pub_dotfiles_files:
   - .bash_profile
   - .direnvrc
-  - .fzf.zsh
   - .inputrc
   - .p10k.zsh
   - .shell
@@ -47,18 +46,23 @@ prv_dotfiles_files: []
 # useful when you don't want to keep an entire dir mapped to git
 prv_dotfiles_subdirs: []
 
-# name: env-setup.02-cli-tools #################################################
+# name: env-setup.02-cli #################################################
+
+# any homebrew taps needed for package(formulae)/cask defined below
+homebrew_taps: []
 
 # NOTE: in linux we'll use the the community.general.homebrew* modules
 # name: geerlingguy.mac.homebrew
-homebrew_installed_packages:
+envsetup_homebrew_installed_packages:
   - antigen
+  - ansible
   - composer
   - direnv
   - fzf
   - go
   - node
   - python
+  - pipx
   - rg
   - ruby
   - rust
@@ -66,14 +70,12 @@ homebrew_installed_packages:
   - vim
   - zsh
 
-homebrew_taps: []
-
 # name: env-setup.03-apps ######################################################
 
 # name: geerlingguy.mac.homebrew
-homebrew_cask_apps:
+envsetup_homebrew_cask_apps:
   - docker
-  - homebrew/cask-fonts/font-meslo-lg-nerd-font
+  - font-meslo-lg-nerd-font
   - iterm2
 
 # name: geerlingguy.mac.mas
@@ -96,10 +98,37 @@ dockitems_persist:
     path: "/Applications/iTerm.app/"
     pos: 2
 
-dockitems_remove: []
+dockitems_remove:
+  - Launchpad
+  - Safari
+  - Messages
+  - Mail
+  - Maps
+  - Photos
+  - Calendar
+  - Contacts
+  - Reminders
+  - Notes
+  - Freeform
+  - TV
+  - Music
+  - Podcasts
+  - News
+  - System Settings
+
+# set any install app setting that should be defaulted
+envsetup_apps_macos_settings: []
+envsetup_apps_macos_sudo_settings: []
+
+# manually open apps to confirm settings or manually adjust
+envsetup_apps_macos_app_open:
+  - "iTerm"
 
 # name: env-setup.04-packages ##################################################
+
 cargo_packages: []
+
+composer_plugins: []
 
 composer_packages: []
 
@@ -127,3 +156,69 @@ git_repo_vendors:
     projects:
       - name: env-setup-dotfiles
         depth: 1
+
+# name: env-setup.06-os ########################################################
+
+# the name of the host machine
+envsetup_os_hostname: ENV-SETUP-MINI
+
+# URL for the admin user
+envsetup_os_avatar_url: "https://avatars.githubusercontent.com/u/1087111"
+
+# macos script (see https://mths.be/macos)
+envsetup_os_macos_config_script: "{{ pub_dotfiles_repo_local_destination }}/.macos"
+
+# set any os setting that should be defaulted
+envsetup_os_macos_settings: []
+envsetup_os_macos_sudo_settings: []
+
+# set any os setting that should be defaulted
+
+# name: env-setup.07-cloud #####################################################
+
+# The cloud app that should be run to start syncing
+envsetup_cloud_app: ""
+
+# The dir where cloud files reside
+envsetup_cloud_dir: ""
+
+# The dir where os setting should be stored
+envsetup_cloud_backup_dir: ""
+
+# The script to do the os setting backup
+envsetup_cloud_sync_script: "echo 'TODO: ADD SCRIPT'"
+
+# The place for cloud file documents on the cloud file dir (and its hierarchy)
+envsetup_cloud_project_root: ""
+envsetup_cloud_project_list: []
+envsetup_cloud_project_dirs: []
+
+# Where on the local filesystem to symlink to the cloud project dir
+envsetup_cloud_project_symlink: ""
+
+# name: env-setup.08-prefs #####################################################
+
+# Dock extras (right side) items that should persist (see geerlingguy.mac.dock)
+envsetup_prefs_macos_other_dockitems_persist: []
+
+# Dock extras (right side) items that should remove (see geerlingguy.mac.dock)
+envsetup_prefs_macos_other_dockitems_remove: []
+
+# Default handlers for file extensions
+envsetup_prefs_macos_file_extension_handlers: []
+
+# Default apps that start on login
+envsetup_prefs_macos_login_items:
+  - {name: "iTerm", hidden: false}
+
+# set any app setting that should be defaulted
+envsetup_prefs_macos_settings: []
+envsetup_prefs_macos_sudo_settings: []
+
+# manually open apps to confirm settings or manually adjust
+envsetup_prefs_macos_app_open: []
+
+# name: gantsign.visual-studio-code-extensions
+envsetup_prefs_visual_studio_code_extensions: []
+envsetup_prefs_visual_studio_code_extensions_absent: []
+

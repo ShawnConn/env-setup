@@ -1,0 +1,59 @@
+---
+- name: Enable cloud syncing
+  hosts: all
+
+  vars_files:
+    - ../../../default.config.yml
+
+  pre_tasks: []
+
+  roles: []
+
+  tasks:
+
+    - name: Open cloud sync app
+      shell: open "{{ envsetup_cloud_app }}"
+      args:
+        executable: bash
+
+    - name: Confirm app settings
+      ansible.builtin.pause:
+        prompt: "Please SIGN IN to the app, configure it, let it sync, and hit ENTER...."
+        echo: no
+
+    - name: Setup cloud sync dir
+      ansible.builtin.file:
+        path: "{{ envsetup_cloud_dir }}/{{ envsetup_cloud_backup_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Check for cloud sync dir
+      stat:
+        path: "{{ envsetup_cloud_dir }}/{{ envsetup_cloud_backup_dir }}"
+      register: cloud_dir_check
+
+    - name: Run cloud sync backup
+      shell: "{{ envsetup_cloud_sync_script }}"
+      args:
+        chdir: "/Users/{{ ansible_user_id }}"
+      environment:
+        CLOUD_SYNC_DIR: "{{ envsetup_cloud_dir }}/{{ envsetup_cloud_backup_dir }}"
+      when: cloud_dir_check.stat.exists
+
+    - name: Setup cloud projects dir
+      ansible.builtin.file:
+        path: "{{ envsetup_cloud_dir }}/{{ envsetup_cloud_project_root }}"
+        state: directory
+        mode: '0755'
+
+    - name: Check for cloud projects dir
+      stat:
+        path: "{{ envsetup_cloud_dir }}/{{ envsetup_cloud_project_root }}"
+      register: cloud_project_check
+
+    - include_tasks: dirs.yml
+      loop: "{{ envsetup_cloud_project_list }}"
+      loop_control:
+        loop_var: outer_item
+        label: "{{ envsetup_cloud_dir }}/{{ envsetup_cloud_project_root }}/{{ outer_item }}"
+      when: cloud_project_check.stat.exists

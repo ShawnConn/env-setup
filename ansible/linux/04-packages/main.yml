@@ -24,6 +24,14 @@
       loop: "{{ cargo_packages }}"
       ignore_errors: true
 
+    - name: Allow Composer plugins
+      community.general.composer:
+        command: config
+        global_command: true
+        arguments: allow-plugins.{{ item.name }} true 
+      loop: "{{ composer_plugins }}"
+      ignore_errors: true
+
     - name: Install PHP packages
       community.general.composer:
         composer_executable: "{{ brew_path }}/composer"
@@ -54,7 +62,7 @@
       loop: "{{ gem_packages }}"
       ignore_errors: true
 
-    - name: Install NPM packages
+    - name: Install Global NPM packages
       community.general.npm:
         executable: "{{ brew_path }}/npm"
         name: "{{ item.name }}"
@@ -62,11 +70,19 @@
       loop: "{{ npm_packages }}"
       ignore_errors: true
 
+    # NOTE: install Python package via pipx 
     - name: Install Python packages
-      ansible.builtin.pip:
-        executable: "{{ brew_path }}/pip3"
-        name: "{{ item.name }}"
+      community.general.pipx:
+        name: "{{ item.name | default(item) }}"
+        state: install
+        #executable: "{{ item.executable | default('/opt/homebrew/bin/pipx') }}"
       loop: "{{ pip_packages }}"
       ignore_errors: true
+
+    - name: Make bins executable by all
+      raw: chmod 755 /usr/local/bin/*
+      failed_when: false
+      changed_when: false
+      become: true
         
   post_tasks: []

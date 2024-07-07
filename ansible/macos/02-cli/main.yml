@@ -1,0 +1,32 @@
+---
+- name: Install CLI tools
+  hosts: all
+  gather_facts: true
+
+  vars_files:
+    - ../../../default.config.yml
+
+  pre_tasks:
+    - name: Check for Rosetta.
+      raw: test -e /Library/Apple/usr/libexec/oah/libRosettaRuntime
+      register: rosetta_present
+      failed_when: false
+      changed_when: false
+    - name: Check architecture.
+      raw: arch
+      register: cpu_arch
+      changed_when: false
+    - name: Install Rosetta on ARM machines if it's absent.
+      become: true
+      when: rosetta_present.rc != 0 and cpu_arch.stdout_lines[0] == "arm64"
+      raw: softwareupdate --install-rosetta --agree-to-license
+
+  roles:
+    - { role: geerlingguy.mac.homebrew, 
+        homebrew_cask_apps: [],
+        homebrew_installed_packages: "{{ envsetup_homebrew_installed_packages }}",
+        tags: ["print_action"] }
+
+  tasks: []
+
+  post_tasks: []

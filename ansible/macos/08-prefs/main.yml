@@ -1,0 +1,36 @@
+---
+- name: Conigure app preferences
+  hosts: all
+
+  vars_files:
+    - ../../../default.config.yml
+
+  pre_tasks: []
+
+  roles: 
+    - { role: gantsign.visual-studio-code-extensions, 
+        users:  [{ 
+          username: "{{ ansible_user_id }}", 
+          visual_studio_code_extensions: "{{ envsetup_prefs_visual_studio_code_extensions }}",
+          visual_studio_code_extensions_absent: "{{ envsetup_prefs_visual_studio_code_extensions_absent }}"
+        }],
+        tags: ["print_action"] }
+
+  tasks:
+
+    - name: Configure extra Dock items
+      include_tasks: dock.yml
+
+    - name: Configure filetype app associations
+      include_tasks: duti.yml
+
+    - name: Configure app login items
+      include_tasks: login.yml
+
+    - name: Configure app defaults
+      include_tasks: defaults.yml
+
+  post_tasks: 
+
+    - name: Open apps for manual configuration
+      include_tasks: open.yml

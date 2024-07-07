@@ -57,10 +57,13 @@ An Ansible _playbook_ is a series of _tasks_ that need to run to get to your wan
 `env-setup` has 5 main playbooks with other optional ones based on your needs.
 
 - `01-config`: Configure your [dotfiles](https://dotfiles.github.io/) for your app & CLI configuration (defaults to [env-setup-dotfiles](https://github.com/Luciditi/env-setup-dotfiles) if not overridden)
-- `02-cli-tools`: Install CLI tools via [Homebrew formulas](https://formulae.brew.sh/formula/)
+- `02-cli`: Install CLI tools via [Homebrew formulas](https://formulae.brew.sh/formula/)
 - `03-apps`: Install GUI applications via [Homebrew casks](https://formulae.brew.sh/cask/) & other means (e.g., Linux package manager & App Store via [mas](https://github.com/mas-cli/mas))
 - `04-packages`: Install common programming language (Go/Node/PHP/Ruby/Rust/Python) dependencies for development tooling.
 - `05-repos`: Clones Git repos used for active development (projects) or reference (vendors).
+- `06-os`: Configure the OS settings.
+- `07-cloud`: Configure the host for cloud file sync.
+- `08-prefs`: Configure any other app settings.
 
 See **custom playbook** section for adding other playbooks as needed.
 

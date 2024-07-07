@@ -1,0 +1,32 @@
+---
+# @TODO: fork geerlingguy.mac.dock
+- name: Ensure dockutil is installed
+  homebrew:
+    name: dockutil
+    state: latest
+
+- name: Remove configured Dock items.
+  ansible.builtin.include_tasks: dock-remove.yml
+  loop: "{{ envsetup_prefs_macos_other_dockitems_remove }}"
+  loop_control:
+    extended: true
+    extended_allitems: false
+
+- name: Ensure required dock items exist.
+  ansible.builtin.include_tasks: dock-add.yml
+  loop: "{{ envsetup_prefs_macos_other_dockitems_persist }}"
+  loop_control:
+    extended: true
+    extended_allitems: false
+
+- name: Ensure dock items are in correct position.
+  ansible.builtin.include_tasks: dock-position.yml
+  when:
+    - item.pos is defined
+    - item.pos > 0
+  loop: "{{ envsetup_prefs_macos_other_dockitems_persist }}"
+  loop_control:
+    extended: true
+    extended_allitems: false
+# @TODO: fork geerlingguy.mac.dock
+#

@@ -1,0 +1,12 @@
+---
+
+- name: Confirm app open
+  ansible.builtin.pause:
+    prompt: "Please ENTER to start manual config of these apps: {{ envsetup_apps_macos_app_open | flatten }}"
+    echo: no
+
+- name: Open app
+  shell: open "/Applications/{{ item }}.app"
+  args:
+    executable: bash
+  loop: "{{ envsetup_apps_macos_app_open }}"

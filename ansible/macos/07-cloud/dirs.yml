@@ -1,0 +1,34 @@
+---
+- name: Create cloud project dir
+  ansible.builtin.file:
+    path: "{{ envsetup_cloud_dir }}/{{ envsetup_cloud_project_root }}/{{ outer_item }}"
+    state: directory
+    mode: '0755'
+
+- name: Check for cloud project dir
+  stat:
+    path: "{{ envsetup_cloud_dir }}/{{ envsetup_cloud_project_root }}/{{ outer_item }}"
+  register: project_check
+
+- name: Check for cloud project dir
+  stat:
+    path: "{{ envsetup_cloud_project_symlink }}"
+  register: sym_check
+
+- name: Symlink cloud project dir
+  ansible.builtin.file:
+    src: "{{ envsetup_cloud_dir }}/{{ envsetup_cloud_project_root }}/{{ outer_item }}"
+    path: "{{ envsetup_cloud_project_symlink }}/{{ outer_item }}"
+    state: link
+    force: true
+  when: project_check.stat.exists and sym_check.stat.exists
+
+- name: Setup project dirs
+  ansible.builtin.file:
+    path: "{{ envsetup_cloud_dir }}/{{ envsetup_cloud_project_root }}/{{ outer_item }}/{{ item }}"
+    state: directory
+    mode: '0755'
+  loop: "{{ envsetup_cloud_project_dirs }}"
+  loop_control:
+    label: "{{ envsetup_cloud_dir }}/{{ envsetup_cloud_project_root }}/{{ outer_item }}/{{ item }}"
+  when: project_check.stat.exists

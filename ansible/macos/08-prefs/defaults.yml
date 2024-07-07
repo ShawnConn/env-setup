@@ -1,0 +1,14 @@
+---
+- name: Apply macos defaults
+  shell: defaults write "{{ item.domain }}" "{{ item.key }}" -{{ item.type }} {{ item.value }}
+  loop_control:
+    label: "{{ item.description }}"
+  loop: "{{ envsetup_prefs_macos_settings }}"
+
+- name: Apply macos sudo defaults
+  shell: defaults write "{{ item.domain }}" "{{ item.key }}" -{{ item.type }} {{ item.value }}
+  loop_control:
+    label: "{{ item.description }}"
+  loop: "{{ envsetup_prefs_macos_sudo_settings }}"
+  become: yes
+
