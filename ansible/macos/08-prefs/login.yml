@@ -1,0 +1,4 @@
+---
+- name: Set login item applications
+  shell: "osascript -e 'tell application \"System Events\" to make login item at end with properties {name: \"{{ item.name }}\", path: \"/Applications/{{ item.name }}.app\", hidden: {{ item.hidden }}}'"
+  loop: "{{ envsetup_prefs_macos_login_items }}"

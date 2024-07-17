@@ -178,6 +178,8 @@ export ANSIBLE_STDOUT_CALLBACK=${ANSIBLE_STDOUT_CALLBACK:-"unixy"}
 export ANSIBLE_ROLES_PATH="$HOME/.ansible/roles"
 ENVSETUP_SELECT_MSG="Select an env-setup playbook (enter q to quit):"
 INIT_PLAYBOOK=".00-init"
+PY_VER=$(python3 -m site --user-site | cut -d'/' -f6)
+export PATH="$HOME/Library/Python/$PY_VER/bin:/usr/local/bin:$PATH"
 PLAYBOOK=${1:-""}
 
 ############################################################################
@@ -189,7 +191,7 @@ SUGGEST_ANSIBLE=$(if [[ -x "$(command -v ansible)" ]]; then \
 if [[ $SUGGEST_ANSIBLE == "1" ]]; then
     echo -e "To begin we'll need to...\n"
     if [[ $ENVSETUP_OS =~ "darwin"* ]]; then
-        SUGGEST_PIP=$(if [[ -x "$(command -v pip3)" ]]; then \
+        SUGGEST_PIP=$(if [[ "$(python3 -m pip -V 2> /dev/null)" ]]; then \
             echo "0"; else echo "${ENVSETUP_SUGGEST_PIP:-1}"; fi)
         if [[ $SUGGEST_PIP == "1" ]]; then
             echo -e "[ ] install Pip"

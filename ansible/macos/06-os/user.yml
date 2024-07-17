@@ -1,0 +1,19 @@
+---
+- name: Retrieve profile pic URL
+  ansible.builtin.get_url:
+    url: "{{ envsetup_os_avatar_url }}"
+    dest: "/Library/User Pictures/Picture"
+    mode: '0644'
+  become: yes
+
+- name: Clear existing user account picture
+  command: 'dscl . {{ item }}'
+  with_items:
+  - 'delete /Users/{{ ansible_user_id }} jpegphoto'
+  - 'delete /Users/{{ ansible_user_id }} Picture'
+  become: yes
+
+- name: Update user account picture
+  command: 'dscl . create /Users/{{ ansible_user_id }} Picture "/Library/User Pictures/Picture"'
+  become: yes
+

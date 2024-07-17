@@ -22,15 +22,24 @@
       shell: open /System/Applications/App\ Store.app
       args:
         executable: bash
-      loop: "{{ go_packages }}"
+
+    - name: XCODE WARNING
+      ansible.builtin.pause:
+        prompt: "NOTE: installing XCode may cause issues w/ ansible (you may need to run `sudo xcodebuild -license` after installation in App Store)"
+        seconds: 7
+      when: mas_installed_apps | selectattr('name', 'equalto', 'Xcode') | list | count > 0
 
     - name: Confirm App Store signin
       ansible.builtin.pause:
         prompt: "Please SIGN IN to the App Store before continuing then hit ENTER...."
         echo: no
 
+    - name: Apply macos defaults
+      include_tasks: defaults.yml
+
   roles:
     - { role: geerlingguy.mac.homebrew, 
+        homebrew_cask_apps: "{{ envsetup_homebrew_cask_apps }}",
         homebrew_installed_packages: [],
         tags: ["print_action"] }
     - { role: geerlingguy.mac.mas, 
@@ -40,8 +49,23 @@
   tasks: []
         
   post_tasks:
+    - name: Check for XCode.
+      raw: test -e /usr/bin/xcodebuild
+      register: xcode_present
+      failed_when: false
+      changed_when: false
+
+    - name: Accept XCode license
+      raw: /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -license accept
+      when: xcode_present.rc != 0
+      become: yes
+      become_method: sudo
+
     - name: Remove unlimited sudo timeout config
       file:
         path: /etc/sudoers.d/ssh_session_timeout
         state: absent
       become: yes
+
+    - name: Open apps for manual configuration
+      include_tasks: open.yml

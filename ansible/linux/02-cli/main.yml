@@ -51,6 +51,11 @@
         name: docker
         state: present
 
+    - name: Install ZSH
+      community.general.homebrew:
+        name: zsh
+        state: present
+
     - name: Install Homebrew taps
       community.general.homebrew_tap:
         name: "{{ item }}"
@@ -60,6 +65,6 @@
       community.general.homebrew:
         name: "{{ item }}"
         state: present
-      loop: "{{ homebrew_installed_packages }}"
+      loop: "{{ envsetup_homebrew_installed_packages }}"
 
   post_tasks: []

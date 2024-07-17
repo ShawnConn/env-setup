@@ -1,0 +1,14 @@
+---
+- name: Conigure app preferences
+  hosts: all
+
+  vars_files:
+    - ../../../default.config.yml
+
+  pre_tasks: []
+
+  roles: []
+
+  tasks: []
+
+  post_tasks: []

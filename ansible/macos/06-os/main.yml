@@ -1,0 +1,42 @@
+---
+- name: Conigure OS settings
+  hosts: all
+
+  vars_files:
+    - ../../../default.config.yml
+
+  pre_tasks:
+    - name: Set unlimited sudo timeout
+      lineinfile:
+        dest: /etc/sudoers.d/ssh_session_timeout
+        line: 'Defaults  env_reset,timestamp_timeout=-1'
+        create: yes
+        owner: root 
+        group: wheel 
+        mode: 0440
+        state: present
+        validate: 'visudo -c -f %s'
+      become: yes
+
+  roles: []
+
+  tasks:
+
+    - name: Configure system preferences
+      include_tasks: system.yml
+
+    - name: Apply macos defaults
+      include_tasks: defaults.yml
+
+    - name: Run macos config script
+      include_tasks: macos.yml
+
+    - name: Configure macos user
+      include_tasks: user.yml
+
+  post_tasks:
+    - name: Remove unlimited sudo timeout config
+      file:
+        path: /etc/sudoers.d/ssh_session_timeout
+        state: absent
+      become: yes

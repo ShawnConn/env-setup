@@ -22,7 +22,6 @@ pub_dotfiles_repo_version: main
 pub_dotfiles_files:
   - .bash_profile
   - .direnvrc
-  - .fzf.zsh
   - .gitconfig
   - .gitignore_global
   - .git_template
@@ -52,28 +51,36 @@ prv_dotfiles_files: []
 # useful when you don't want to keep an entire dir mapped to git
 prv_dotfiles_subdirs: []
 
-# name: env-setup.02-cli-tools #################################################
+# name: env-setup.02-cli #################################################
+
+# any homebrew taps needed for package(formulae)/cask defined below
+homebrew_taps:
+  - riboseinc/easy-rsa
 
 # NOTE: in linux we'll use the the community.general.homebrew* modules
 # name: geerlingguy.mac.homebrew
-homebrew_installed_packages:
+envsetup_homebrew_installed_packages:
   - antigen
+  - ansible
   - awscli
   - aws-shell
   - bat
   - composer
   - direnv
+  - duti
   - fzf
   - gh
   - go
   - gitleaks
   - jq
   - libpq
+  - sijanc147/formulas/macprefs
   - mysql-client
   - neovim
   - node
   - nvm
   - python
+  - pipx
   - redis
   - rbenv
   - rg
@@ -84,23 +91,21 @@ homebrew_installed_packages:
   - vim
   - zsh
 
-homebrew_taps:
-  - riboseinc/easy-rsa
-
 # name: env-setup.03-apps ######################################################
 
 # name: geerlingguy.mac.homebrew
-homebrew_cask_apps:
+envsetup_homebrew_cask_apps:
   - chrome-devtools
   - chromedriver
   - docker
   - google-chrome
-  - homebrew/cask-fonts/font-meslo-lg-nerd-font
+  - google-drive
+  - font-meslo-lg-nerd-font
   - iterm2
-  - keeper-password-manager
   - postico
   - sequel-ace
   - tunnelblick
+  - visual-studio-code
   - zoom
 
 # name: geerlingguy.mac.mas
@@ -132,8 +137,8 @@ dockitems_persist:
   - name: "iTerm2"
     path: "/Applications/iTerm.app/"
     pos: 3
-  - name: "Keeper Password Manager"
-    path: "/Applications/Keeper Password Manager.app"
+  - name: "VS Code"
+    path: "/Applications/Visual\ Studio\ Code.app"
     pos: 4
   - name: "Postico 2"
     path: "/Applications/Postico 2.app"
@@ -153,6 +158,7 @@ dockitems_persist:
 
 dockitems_remove:
   - Launchpad
+  - Safari
   - Messages
   - Mail
   - Maps
@@ -166,10 +172,27 @@ dockitems_remove:
   - Music
   - Podcasts
   - News
+  - System Settings
+
+# set any install app setting that should be defaulted
+envsetup_apps_macos_settings:
+  - {description: "iTerm2: Load custom settings from a folder/URL", domain: "com.googlecode.iterm2", key: "LoadPrefsFromCustomFolder", type: "bool", value: true}
+  - {description: "iTerm2: Set the custom settings folder/URL", domain: "com.googlecode.iterm2", key: "PrefsCustomFolder", type: "string", value: "\"/Users/{{ ansible_user_id }}/env-setup-prv-dotfiles/.iterm2\""}
+envsetup_apps_macos_sudo_settings: []
+
+# manually open apps to confirm settings or manually adjust
+envsetup_apps_macos_app_open:
+  - "Google Chrome"
+  - "iTerm"
 
 # name: env-setup.04-packages ##################################################
+
 cargo_packages:
-  - name: bore
+  - name: bore-cli
+
+composer_plugins: 
+  - name: composer/installers
+  - name: dealerdirect/phpcodesniffer-composer-installer
 
 composer_packages:
   - name: phpunit/phpunit
@@ -199,7 +222,6 @@ npm_packages:
 pip_packages:
   - name: mycli
   - name: percol
-  - name: pynvim
   - name: virtualenv
   - name: yq
 
@@ -219,3 +241,141 @@ git_repo_vendors:
     projects:
       - name: env-setup-dotfiles
         depth: 1
+
+# name: env-setup.06-os ########################################################
+
+# the name of the host machine
+envsetup_os_hostname: ENV-SETUP-MOST
+
+# URL for the admin user
+envsetup_os_avatar_url: "https://avatars.githubusercontent.com/u/1087111"
+
+# macos script (see https://mths.be/macos)
+envsetup_os_macos_config_script: "{{ pub_dotfiles_repo_local_destination }}/.macos"
+
+# set any os setting that should be defaulted
+envsetup_os_macos_settings: 
+  - {description: "Play feedback when volume is changed", domain: "NSGlobalDomain", key: "com.apple.sound.beep.feedback", type: "int", value: 1}
+envsetup_os_macos_sudo_settings:
+  - {description: "Set login message", domain: "/Library/Preferences/com.apple.loginwindow", key: "LoginwindowText", type: "string", value: "\"\""}
+
+# set any os setting that should be defaulted
+envsetup_os_linux_settings: []
+
+# name: env-setup.07-cloud #####################################################
+
+# The cloud app that should be run to start syncing
+envsetup_cloud_app: "/Applications/Google Drive.app"
+
+# The dir where cloud files reside
+envsetup_cloud_dir: "/Users/{{ ansible_user_id }}/Google Drive"
+
+# The dir where os setting should be stored
+envsetup_cloud_backup_dir: "env-setup/Config/{{ ansible_hostname }}/MacPrefs"
+
+# The script to do the os setting backup
+envsetup_cloud_sync_script: "export MACPREFS_BACKUP_DIR=$CLOUD_SYNC_DIR && macprefs backup"
+
+# The place for cloud file documents on the cloud file dir (and its hierarchy)
+envsetup_cloud_project_root: "env-setup/Projects"
+envsetup_cloud_project_list: 
+ - MyProject
+envsetup_cloud_project_dirs:
+  - config
+  - devops
+  - keys
+  - mock-data
+  - notes
+  - patches
+  - script
+
+# Where on the local filesystem to symlink to the cloud project dir
+envsetup_cloud_project_symlink: "/Users/{{ ansible_user_id }}/Documents"
+
+# name: env-setup.08-prefs #####################################################
+
+# Dock extras (right side) items that should persist (see geerlingguy.mac.dock)
+envsetup_prefs_macos_other_dockitems_persist:
+  - name: Applications
+    path: "/Applications"
+    view: list
+    display: stack
+    pos: 1
+  - name: Home
+    path: "/Users/{{ ansible_user_id }}"
+    view: auto
+    display: stack
+    pos: 2
+  - name: Downloads
+    path: "/Users/{{ ansible_user_id }}/Downloads"
+    view: auto
+    display: stack
+    pos: 3
+  - name: Google Drive
+    path: "/Users/{{ ansible_user_id }}/Google Drive"
+    view: auto
+    display: stack
+    pos: 4
+
+# Dock extras (right side) items that should remove (see geerlingguy.mac.dock)
+envsetup_prefs_macos_other_dockitems_remove: []
+
+# Default handlers for file extensions
+envsetup_prefs_macos_file_extension_handlers:
+  - { extension: avi, handler: com.microsoft.VSCode }
+  - { extension: c, handler: com.microsoft.VSCode }
+  - { extension: cpp, handler: com.microsoft.VSCode }
+  - { extension: cs, handler: com.microsoft.VSCode }
+  - { extension: css, handler: com.microsoft.VSCode }
+  - { extension: go, handler: com.microsoft.VSCode }
+  - { extension: java, handler: com.microsoft.VSCode }
+  - { extension: js, handler: com.microsoft.VSCode }
+  - { extension: sass, handler: com.microsoft.VSCode }
+  - { extension: scss, handler: com.microsoft.VSCode }
+  - { extension: less, handler: com.microsoft.VSCode }
+  - { extension: vue, handler: com.microsoft.VSCode }
+  - { extension: cfg, handler: com.microsoft.VSCode }
+  - { extension: json, handler: com.microsoft.VSCode }
+  - { extension: jsx, handler: com.microsoft.VSCode }
+  - { extension: lua, handler: com.microsoft.VSCode }
+  - { extension: md, handler: com.microsoft.VSCode }
+  - { extension: php, handler: com.microsoft.VSCode }
+  - { extension: pl, handler: com.microsoft.VSCode }
+  - { extension: py, handler: com.microsoft.VSCode }
+  - { extension: rb, handler: com.microsoft.VSCode }
+  - { extension: rs, handler: com.microsoft.VSCode }
+  - { extension: sh, handler: com.microsoft.VSCode }
+  - { extension: swift, handler: com.microsoft.VSCode }
+  - { extension: txt, handler: com.microsoft.VSCode }
+  - { extension: conf, handler: com.microsoft.VSCode }
+
+
+# Default apps that start on login
+envsetup_prefs_macos_login_items:
+  - {name: "Google Chrome", hidden: false}
+  - {name: "Google Drive", hidden: false}
+  - {name: "iTerm", hidden: false}
+  - {name: "Tunnelblick", hidden: false}
+
+# set any app setting that should be defaulted
+envsetup_prefs_macos_settings: []
+envsetup_prefs_macos_sudo_settings: []
+
+# manually open apps to confirm settings or manually adjust
+envsetup_prefs_macos_app_open:
+  - "Tunnelblick"
+
+# name: gantsign.visual-studio-code-extensions
+envsetup_prefs_visual_studio_code_extensions:
+  - github.copilot
+  - hashicorp.terraform
+  - mhutchie.git-graph
+  - ms-python.python
+  - ms-azuretools.vscode-docker
+  - redhat.ansible
+  - streetsidesoftware.code-spell-checker
+  - vscodevim.vim
+  - wholroyd.jinja
+  - zainchen.json
+envsetup_prefs_visual_studio_code_extensions_absent: []
+

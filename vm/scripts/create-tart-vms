@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+# Set stop on error / enable debug
+set -euo pipefail
+#set -vx
+
+SCRIPTS_DIR="$(dirname "$0")"
+# shellcheck source=/dev/null
+source "$SCRIPTS_DIR/../../scripts/_common"
+
+############################################################################
+# CREATE TART VMS
+############################################################################
+echo -e "\n${C_HIL}Create macos VM:${C_RES}"
+tart clone ghcr.io/cirruslabs/macos-sonoma-vanilla:latest sonoma-vanilla
+tart set sonoma-vanilla --disk-size 60
+
+echo -e "\n${C_HIL}Create linux VM:${C_RES}"
+tart clone ghcr.io/cirruslabs/ubuntu:latest ubuntu
+tart set ubuntu --disk-size 50
+
+echo -e "\nrun ${C_WAR}tart run (sonoma-vanilla|ubuntu)${C_RES} to start VMs"

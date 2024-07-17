@@ -63,3 +63,6 @@ key and Linux (Ubuntu 20) & macOS (Ventura) EC2 VMs.
 
 Once built, there are a few [scripts](terraform/scripts) that can be used to 
 test running `env-setup` in a new environment.
+
+The `vm` [directory](vm) has a couple of [scripts](vm/scripts) that can be used
+to test running `env-setup` in [Tart](https://tart.run/).

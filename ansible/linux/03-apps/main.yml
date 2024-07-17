@@ -8,20 +8,20 @@
 
   vars:
     packages:
-      # @TODO use homebrew_cask_apps to map equivalents in linux
+      # @TODO use envsetup_homebrew_cask_apps to map equivalents in linux
       # e.g., google-chrome ~~> chromium-browser
-      chrome-devtools: "ansible"
-      chromedriver: "ansible"
-      docker-desktop: "ansible"
-      docker: "ansible"
+      chrome-devtools: "chromium-browser"
+      chromedriver: "chromium-chromedriver"
+      docker-desktop: "docker"
+      docker: "docker"
       google-chrome: "chromium-browser"
-      homebrew/cask-fonts/font-meslo-lg-nerd-font: "chromium-browser"
-      iterm2: "ansible"
-      keeper-password-manager: "ansible"
-      postico: "ansible"
-      sequel-ace: "ansible"
-      tunnelblick: "ansible"
-      zoom: "ansible"
+      font-meslo-lg-nerd-font: "fontconfig"
+      iterm2: "terminology"
+      postico: "postgresql-client"
+      sequel-ace: "default-mysql-client"
+      tunnelblick: "openvpn"
+      visual-studio-code: "vim"
+      zoom: "gdebi"
 
   pre_tasks:
     - name: Set unlimited sudo timeout
@@ -39,11 +39,18 @@
   roles: []
 
   tasks:
+
+    - name: Add source repository into sources list
+      ansible.builtin.apt_repository:
+        repo: 'ppa:enlightenment-git/ppa'
+        validate_certs: no
+        state: present
+
     - name: Install configured applications
       ansible.builtin.package:
         name: "{{ packages[item] }}"
         state: present
-      loop: "{{ homebrew_cask_apps }}"
+      loop: "{{ envsetup_homebrew_cask_apps }}"
       ignore_errors: true
         
   post_tasks:
