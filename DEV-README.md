@@ -7,7 +7,7 @@ the `scripts/init` and `*.yml` config files to point your own repo URLs.
 
 ## Design
 There isn't much to env-setup. To use one sentence, it's a text user interface 
-for Git, Ansible, & Homebrew to install/configure your macos / Linux 
+for Git, Ansible, & Homebrew to install/configure your macOS / Linux 
 environment.
 
 If you want to do development, see the summary/notes on each of its 
