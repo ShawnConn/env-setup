@@ -110,8 +110,8 @@ run_playbook() {
         fi
 
         # shellcheck disable=SC2086
-        ansible-playbook main.yml $ANSIBLE_VERBOSE \
-            -i inventory $ANSIBLE_SUDO             \
+        ansible-playbook main.yml $ANSIBLE_VERBOSE $ANSIBLE_CHECK \
+            -i inventory $ANSIBLE_SUDO                            \
             $ANSIBLE_EXTRA_VARS
         cd "$PWD"
         echo -e "\n${C_SUC}$PLAYBOOK_NAME playbook completed!${C_RES}"
@@ -133,13 +133,19 @@ run_playbook() {
 #/
 #/   $SCRIPT
 #/      Start $SCRIPT to select playbooks to setup.
-#/   $SCRIPT -u
-#/      Update $SCRIPT.
+#/   $SCRIPT -c
+#/      Set a new config.
+#/   $SCRIPT -C 02-cli
+#/      Run "02-cli" playbook as a "dry-run". (--check)
+#/   $SCRIPT -v 03-apps
+#/      Run "03-apps" playbook in verbose mode.
 #/   $SCRIPT 04-my-playbook
 #/      Have $SCRIPT run the "04-my-playbook" playbook.
 #/
 #/ Options:
 #/   --help/-h: Display this help message
+#/          -c: Set a new config
+#/          -C: Check the changes of the playbook.
 #/          -u: Update env-setup from its remote Git source
 #/          -v: Run env-setup with verbose mode
 SCRIPT=$(basename "$0")
@@ -153,11 +159,15 @@ expr "$*" : ".*--help" > /dev/null && usage
 
 # Handle options
 # Add options x: - required arg
-while getopts 'chuv' FLAG; do
+while getopts 'cChuv' FLAG; do
     case "${FLAG}" in
         c) shift "$((OPTIND-1))"; config "${1:-""}"; exit 0 ;;
         h) usage; exit 0 ;;
         u) update; exit 0 ;;
+        C)
+            ANSIBLE_CHECK="-C"
+            shift "$((OPTIND-1))"
+            ;;
         v)
             set -vx
             ANSIBLE_VERBOSE="-vvv"
@@ -172,7 +182,8 @@ done
 # VARS
 ############################################################################
 ANSIBLE_SUDO="-K"
-ANSIBLE_VERBOSE=""
+ANSIBLE_CHECK=${ANSIBLE_CHECK:-""}
+ANSIBLE_VERBOSE=${ANSIBLE_VERBOSE:-""}
 # unixy | dense | debug | yaml | selective
 export ANSIBLE_STDOUT_CALLBACK=${ANSIBLE_STDOUT_CALLBACK:-"unixy"}
 export ANSIBLE_ROLES_PATH="$HOME/.ansible/roles"
