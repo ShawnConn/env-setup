@@ -13,8 +13,10 @@ downloads: ~/.ansible-downloads/
 
 # name: env-setup.01-config ####################################################
 
-# name: geerlingguy.dotfiles
 # Find dotfiles via $(find . -type f | grep -vE '\.\/\.git\/' | sed -e 's/\.\///g')
+
+# name: geerlingguy.dotfiles
+# https://github.com/geerlingguy/ansible-role-dotfiles
 pub_dotfiles_repo: git@github.com:Luciditi/env-setup-dotfiles.git
 pub_dotfiles_repo_accept_hostkey: yes
 pub_dotfiles_repo_local_destination: ~/env-setup-dotfiles
@@ -40,8 +42,10 @@ pub_dotfiles_subdirs:
   - ~/.vim/colors/
 
 # OPTIONAL FOR NON PUBLIC DOTFILES
-# name: geerlingguy.dotfiles
 # Find dotfiles via $(find . -type f | grep -vE '\.\/\.git\/' | sed -e 's/\.\///g')
+
+# name: geerlingguy.dotfiles
+# https://github.com/geerlingguy/ansible-role-dotfiles
 prv_dotfiles_repo: git@github.com:Luciditi/env-setup-dotfiles.git
 prv_dotfiles_repo_accept_hostkey: yes
 prv_dotfiles_repo_local_destination: ~/env-setup-prv-dotfiles
@@ -54,6 +58,9 @@ prv_dotfiles_subdirs: []
 # name: env-setup.02-cli #################################################
 
 # any homebrew taps needed for package(formulae)/cask defined below
+# NOTE: in linux we'll use the the community.general.homebrew* modules
+# name: geerlingguy.mac.homebrew
+# https://github.com/geerlingguy/ansible-collection-mac/tree/master/roles/homebrew
 homebrew_taps:
   - riboseinc/easy-rsa
 
@@ -91,6 +98,7 @@ envsetup_homebrew_installed_packages:
 # name: env-setup.03-apps ######################################################
 
 # name: geerlingguy.mac.homebrew
+# https://github.com/geerlingguy/ansible-collection-mac/tree/master/roles/homebrew
 envsetup_homebrew_cask_apps:
   - chrome-devtools
   - chromedriver
@@ -105,6 +113,7 @@ envsetup_homebrew_cask_apps:
   - zoom
 
 # name: geerlingguy.mac.mas
+# https://github.com/geerlingguy/ansible-collection-mac/tree/master/roles/mas
 mas_installed_apps:
   - { id: 803453959, name: "Slack" }
   #- { id: 497799835, name: "Xcode" }
@@ -121,6 +130,7 @@ mas_email: ""
 mas_password: ""
 
 # name: geerlingguy.mac.dock
+# https://github.com/geerlingguy/ansible-collection-mac/tree/master/roles/dock
 configure_dock: false
 
 dockitems_persist:
@@ -170,12 +180,14 @@ dockitems_remove:
   - News
   - System Settings
 
+# defaults.yml
 # set any install app setting that should be defaulted
 envsetup_apps_macos_settings: []
   #- {description: "iTerm2: Load custom settings from a folder/URL", domain: "com.googlecode.iterm2", key: "LoadPrefsFromCustomFolder", type: "bool", value: true}
   #- {description: "iTerm2: Set the custom settings folder/URL", domain: "com.googlecode.iterm2", key: "PrefsCustomFolder", type: "string", value: "\"/Users/{{ ansible_user_id }}/.app/iterm2\""}
 envsetup_apps_macos_sudo_settings: []
 
+# open.yml
 # manually open apps to confirm settings or manually adjust
 envsetup_apps_macos_app_open:
   - "Google Chrome"
@@ -183,22 +195,28 @@ envsetup_apps_macos_app_open:
 
 # name: env-setup.04-packages ##################################################
 
+# cargo packages to install
 cargo_packages:
   - name: bore-cli
 
+# composer plugins to install 
 composer_plugins: 
   - name: composer/installers
 
+# php packages to install
 composer_packages:
   - name: psy/psysh
 
+# go packages to install
 go_packages:
   - name: github.com/ericchiang/pup@latest
   - name: github.com/ericchiang/xpup@latest
 
+# ruby packages to install
 gem_packages:
   - name: ghi
 
+# node packages to install
 npm_packages:
   - name: commitizen
   - name: eslint
@@ -210,6 +228,7 @@ npm_packages:
   - name: '@storybook/cli'
   - name: '@vue/cli'
 
+# python packages to install
 pip_packages:
   - name: mycli
   - name: percol
@@ -218,6 +237,7 @@ pip_packages:
 
 # name: env-setup.05-repos #####################################################
 
+# a project dir where git repos will be actively worked on
 git_repo_project_dir: ~/env-setup-git-repos
 git_repo_projects:
   - name: env-setup
@@ -225,6 +245,7 @@ git_repo_projects:
     upstream: git@github.com:Luciditi/env-setup.git
     symlink: ~/Documents/TheBlock/projects/devops/env-setup
 
+# a vendor dir where git repos will be referenced 
 git_repo_vendors_dir: ~/env-setup-vendors
 git_repo_vendors:
   - name: luciditi
@@ -235,9 +256,11 @@ git_repo_vendors:
 
 # name: env-setup.06-os ########################################################
 
+# system.yml
 # the name of the host machine
 envsetup_os_hostname: ENV-SETUP
 
+# user.yml
 # URL for the admin user
 envsetup_os_avatar_url: "https://avatars.githubusercontent.com/u/16793781"
 
@@ -245,6 +268,8 @@ envsetup_os_avatar_url: "https://avatars.githubusercontent.com/u/16793781"
 envsetup_os_macos_settings: []
 envsetup_os_macos_sudo_settings: []
 
+# macos.yml
+# macos script (see https://mths.be/macos)
 envsetup_os_macos_config_script: "{{ pub_dotfiles_repo_local_destination }}/.macos"
 
 # set any os setting that should be defaulted
@@ -258,6 +283,7 @@ envsetup_os_linux_settings: []
 
 # name: env-setup.07-cloud #####################################################
 
+# main.yml
 # The cloud app that should be run to start syncing
 envsetup_cloud_app: ""
 
@@ -270,6 +296,7 @@ envsetup_cloud_backup_dir: ""
 # The script to do the os setting backup
 envsetup_cloud_sync_script: "echo 'TODO: ADD SCRIPT'"
 
+# dirs.yml
 # The place for cloud file documents on the cloud file dir (and its hierarchy)
 envsetup_cloud_project_root: ""
 envsetup_cloud_project_list: []
@@ -280,6 +307,7 @@ envsetup_cloud_project_symlink: ""
 
 # name: env-setup.08-prefs #####################################################
 
+# dock.yml
 # Dock extras (right side) items that should persist (see geerlingguy.mac.dock)
 envsetup_prefs_macos_other_dockitems_persist:
   - name: Applications
@@ -301,6 +329,7 @@ envsetup_prefs_macos_other_dockitems_persist:
 # Dock extras (right side) items that should remove (see geerlingguy.mac.dock)
 envsetup_prefs_macos_other_dockitems_remove: []
 
+# duti.yml
 # Default handlers for file extensions
 envsetup_prefs_macos_file_extension_handlers:
   - { extension: avi, handler: com.microsoft.VSCode }
@@ -330,21 +359,25 @@ envsetup_prefs_macos_file_extension_handlers:
   - { extension: txt, handler: com.microsoft.VSCode }
   - { extension: conf, handler: com.microsoft.VSCode }
 
+# login.yml
 # Default apps that start on login
 envsetup_prefs_macos_login_items:
   - {name: "Google Chrome", hidden: false}
   - {name: "iTerm", hidden: false}
   - {name: "Tunnelblick", hidden: false}
 
+# defaults.yml
 # set any app setting that should be defaulted
 envsetup_prefs_macos_settings: []
 envsetup_prefs_macos_sudo_settings: []
 
+# open.yml
 # manually open apps to confirm settings or manually adjust
 envsetup_prefs_macos_app_open:
   - "Tunnelblick"
 
 # name: gantsign.visual-studio-code-extensions
+# https://github.com/gantsign/ansible-role-visual-studio-code-extensions
 envsetup_prefs_visual_studio_code_extensions:
   - github.copilot
   - hashicorp.terraform

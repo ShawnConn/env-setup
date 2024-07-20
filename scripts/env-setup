@@ -153,6 +153,10 @@ run_playbook() {
 #/      Run "02-cli" playbook as a "dry-run". (--check)
 #/   $SCRIPT -i 04-packages
 #/      Show "04-packages" playbook tasks.
+#/   $SCRIPT -s prv_dotfiles 01-config
+#/      Run "01-config" playbook with skipping the prv_dotfiles tasks
+#/   $SCRIPT -t pub_dotfiles 01-config
+#/      Run "01-config" playbook with only the pub_dotfiles tasks
 #/   $SCRIPT -v 03-apps
 #/      Run "03-apps" playbook in verbose mode.
 #/   $SCRIPT 04-my-playbook
