@@ -100,8 +100,8 @@ update() {
         git stash -m "$GIT_STASH"
         git pull --rebase
         # shellcheck disable=SC1083
-        git stash apply stash^{/"$GIT_STASH"} || true
-        git stash drop 0
+        git stash apply stash^{/"$GIT_STASH"} 2> /dev/null || true
+        git stash drop 0 2> /dev/null || true
     done < <(echo -e "$ENVSETUP_DIR\n$PUB_DOTFILES_DIR\n$PRV_DOTFILES_DIR")
 }
 
