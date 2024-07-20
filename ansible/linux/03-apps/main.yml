@@ -35,16 +35,11 @@
         state: present
         validate: 'visudo -c -f %s'
       become: yes
+      tags: ["sudo"]
 
   roles: []
 
   tasks:
-
-    - name: Add source repository into sources list
-      ansible.builtin.apt_repository:
-        repo: 'ppa:enlightenment-git/ppa'
-        validate_certs: no
-        state: present
 
     - name: Install configured applications
       ansible.builtin.package:
@@ -52,6 +47,7 @@
         state: present
       loop: "{{ envsetup_homebrew_cask_apps }}"
       ignore_errors: true
+      tags: ["apps"]
         
   post_tasks:
     - name: Remove unlimited sudo timeout config
@@ -59,3 +55,4 @@
         path: /etc/sudoers.d/ssh_session_timeout
         state: absent
       become: yes
+      tags: ["sudo"]

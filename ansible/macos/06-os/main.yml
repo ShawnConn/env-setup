@@ -17,6 +17,7 @@
         state: present
         validate: 'visudo -c -f %s'
       become: yes
+      tags: ["sudo"]
 
   roles: []
 
@@ -24,15 +25,19 @@
 
     - name: Configure system preferences
       include_tasks: system.yml
+      tags: ["system"]
 
     - name: Apply macos defaults
       include_tasks: defaults.yml
+      tags: ["defaults"]
 
     - name: Run macos config script
       include_tasks: macos.yml
+      tags: ["macos"]
 
     - name: Configure macos user
       include_tasks: user.yml
+      tags: ["user"]
 
   post_tasks:
     - name: Remove unlimited sudo timeout config
@@ -40,3 +45,4 @@
         path: /etc/sudoers.d/ssh_session_timeout
         state: absent
       become: yes
+      tags: ["sudo"]

@@ -17,10 +17,12 @@
       stat:
         path: "{{ brew_path }}/brew"
       register: homebrew_bin
+      tags: ["homebrew"]
 
     - name: Install Homebrew
       shell: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
       when: not homebrew_bin.stat.exists
+      tags: ["homebrew"]
 
     - name: Add Homebrew Path
       shell:  |
@@ -28,43 +30,51 @@
         (echo; echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"') >> "/home/{{ ansible_env.USER }}/.zshrc"
         eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
       when: not homebrew_bin.stat.exists
+      tags: ["homebrew"]
 
     - name: Install build tools
       ansible.builtin.package:
         name: "build-essential"
         state: present
       become: yes
+      tags: ["homebrew"]
 
     - name: Install notifier
       ansible.builtin.package:
         name: "libnotify-bin"
         state: present
       become: yes
+      tags: ["homebrew"]
 
     - name: Install GCC
       community.general.homebrew:
         name: gcc
         state: present
+      tags: ["homebrew"]
 
     - name: Install Docker
       community.general.homebrew:
         name: docker
         state: present
-
-    - name: Install ZSH
-      community.general.homebrew:
-        name: zsh
-        state: present
+      tags: ["homebrew"]
 
     - name: Install Homebrew taps
       community.general.homebrew_tap:
         name: "{{ item }}"
       loop: "{{ homebrew_taps }}"
+      tags: ["homebrew"]
 
     - name: Install Homebrew packages
       community.general.homebrew:
         name: "{{ item }}"
         state: present
       loop: "{{ envsetup_homebrew_installed_packages }}"
+      tags: ["clis"]
+
+    - name: Install ZSH
+      community.general.homebrew:
+        name: zsh
+        state: present
+      tags: ["zsh"]
 
   post_tasks: []
