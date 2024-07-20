@@ -18,6 +18,7 @@
         executable: bash
       loop: "{{ cargo_packages }}"
       ignore_errors: true
+      tags: ["rust"]
 
     - name: Allow Global Composer plugins
       community.general.composer:
@@ -26,6 +27,7 @@
         arguments: allow-plugins.{{ item.name }} true 
       loop: "{{ composer_plugins }}"
       ignore_errors: true
+      tags: ["php"]
 
     - name: Install PHP packages
       community.general.composer:
@@ -34,6 +36,7 @@
         arguments: "{{ item.name }}"
       loop: "{{ composer_packages }}"
       ignore_errors: true
+      tags: ["php"]
 
     # NOTE: install Go via Homebrew can be odd, perhaps use alternatives
     # https://github.com/suzuki-shunsuke/ansible-go-module alternative
@@ -43,6 +46,7 @@
         executable: bash
       loop: "{{ go_packages }}"
       ignore_errors: true
+      tags: ["go"]
 
     - name: Install Ruby packages
       community.general.gem:
@@ -50,6 +54,7 @@
         state: latest
       loop: "{{ gem_packages }}"
       ignore_errors: true
+      tags: ["ruby"]
 
     - name: Install Global NPM packages
       community.general.npm:
@@ -57,6 +62,7 @@
         global: true
       loop: "{{ npm_packages }}"
       ignore_errors: true
+      tags: ["node"]
 
     # NOTE: install Python package via pipx 
     - name: Install Python packages
@@ -66,11 +72,6 @@
         executable: "{{ item.executable | default('/opt/homebrew/bin/pipx') }}"
       loop: "{{ pip_packages }}"
       ignore_errors: true
+      tags: ["python"]
 
-    - name: Make bins executable by all
-      raw: chmod 755 /usr/local/bin/*
-      failed_when: false
-      changed_when: false
-      become: true
-        
   post_tasks: []

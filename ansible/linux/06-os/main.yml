@@ -14,5 +14,6 @@
     - name: Set hostname
       ansible.builtin.hostname:
         name: "{{ envsetup_os_hostname }}"
+      tags: ["system"]
         
   post_tasks: []

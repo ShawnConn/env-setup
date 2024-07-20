@@ -14,23 +14,28 @@
           visual_studio_code_extensions: "{{ envsetup_prefs_visual_studio_code_extensions }}",
           visual_studio_code_extensions_absent: "{{ envsetup_prefs_visual_studio_code_extensions_absent }}"
         }],
-        tags: ["print_action"] }
+        tags: ["print_action", "vscode"] }
 
   tasks:
 
     - name: Configure extra Dock items
       include_tasks: dock.yml
+      tags: ["dock"]
 
     - name: Configure filetype app associations
       include_tasks: duti.yml
+      tags: ["filetypes"]
 
     - name: Configure app login items
       include_tasks: login.yml
+      tags: ["login"]
 
     - name: Configure app defaults
       include_tasks: defaults.yml
+      tags: ["defaults"]
 
   post_tasks: 
 
     - name: Open apps for manual configuration
       include_tasks: open.yml
+      tags: ["open"]

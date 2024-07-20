@@ -12,20 +12,23 @@
       register: rosetta_present
       failed_when: false
       changed_when: false
+      tags: ["rosetta"]
     - name: Check architecture.
       raw: arch
       register: cpu_arch
       changed_when: false
+      tags: ["rosetta"]
     - name: Install Rosetta on ARM machines if it's absent.
       become: true
       when: rosetta_present.rc != 0 and cpu_arch.stdout_lines[0] == "arm64"
       raw: softwareupdate --install-rosetta --agree-to-license
+      tags: ["rosetta"]
 
   roles:
     - { role: geerlingguy.mac.homebrew, 
         homebrew_cask_apps: [],
         homebrew_installed_packages: "{{ envsetup_homebrew_installed_packages }}",
-        tags: ["print_action"] }
+        tags: ["print_action", "clis"] }
 
   tasks: []
 

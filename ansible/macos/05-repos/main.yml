@@ -17,12 +17,7 @@
       with_items:
         - "{{ git_repo_project_dir }}"
         - "{{ git_repo_vendors_dir }}"
-
-    - name: Create vendor directories
-      file:
-        path: "{{ git_repo_vendors_dir }}/{{ item.name }}"
-        state: directory
-      with_items: "{{ git_repo_vendors }}"
+      tags: ["project", "vendor"]
 
     - name: Clone project repos
       git:
@@ -33,6 +28,7 @@
         update: no
       with_items: "{{ git_repo_projects }}" 
       ignore_errors: yes
+      tags: ["project"]
 
     - name: Symlink project repos
       file:
@@ -41,6 +37,7 @@
         state: directory
       with_items: "{{ git_repo_projects }}" 
       when: item.symlink is defined
+      tags: ["project"]
 
     - name: Symlink project repos
       file:
@@ -50,6 +47,7 @@
         state: link
       with_items: "{{ git_repo_projects }}" 
       when: item.symlink is defined
+      tags: ["project"]
 
     - name: Set project repo upstream remotes
       command: git remote add upstream "{{ item.upstream }}"
@@ -58,6 +56,14 @@
       with_items: "{{ git_repo_projects }}" 
       when: item.upstream is defined
       ignore_errors: yes
+      tags: ["project"]
+
+    - name: Create vendor directories
+      file:
+        path: "{{ git_repo_vendors_dir }}/{{ item.name }}"
+        state: directory
+      with_items: "{{ git_repo_vendors }}"
+      tags: ["vendor"]
 
     - name: Clone vendor repos
       git:
@@ -70,6 +76,7 @@
         - "{{ git_repo_vendors }}"
         - projects
       ignore_errors: yes
+      tags: ["vendor"]
 
     - name: Symlink vendor repos
       file:
@@ -81,5 +88,6 @@
         - "{{ git_repo_vendors }}"
         - projects
       when: item.1.symlink is defined
+      tags: ["vendor"]
             
   post_tasks: []

@@ -37,7 +37,7 @@ values in `config.yml` to fit what your environment setup needs.
   - `mini`: You want a environment setup with only the basic functionality (scripts, Homebrew, & Ansible).
   - `default`: You **workable default** environment setup that will be used semi-often.
   - `most`: You want it **all** in a environment setup that you'll use often.
-  - `custom`: You want a **custom** `config.yml` that you'll specify on your own.
+  - `custom`: You want a **custom** `config.yml` that you'll specify on your own (see an [example config.yml](https://gist.github.com/ShawnConn/2400705e601d6315394f0e4f01bb66b8))
 
 <img align="right" width="250" src="https://github.com/Luciditi/env-setup/assets/1087111/7d30e859-b7c6-4f21-b35d-879ae550a4f7">
 
@@ -54,7 +54,7 @@ Running `env-setup -u` will update the installed repo alongside the installed
 
 ### Playbooks
 An Ansible _playbook_ is a series of _tasks_ that need to run to get to your wanted setup.
-`env-setup` has 5 main playbooks with other optional ones based on your needs.
+`env-setup` has 8 main playbooks with other optional ones based on your needs.
 
 - `01-config`: Configure your [dotfiles](https://dotfiles.github.io/) for your app & CLI configuration (defaults to [env-setup-dotfiles](https://github.com/Luciditi/env-setup-dotfiles) if not overridden)
 - `02-cli`: Install CLI tools via [Homebrew formulas](https://formulae.brew.sh/formula/)
@@ -66,6 +66,19 @@ An Ansible _playbook_ is a series of _tasks_ that need to run to get to your wan
 - `08-prefs`: Configure any other app settings.
 
 See **custom playbook** section for adding other playbooks as needed.
+
+### Task Info
+If you like a _list_ of what _tasks_ in a playbook will do, run `env-setup -i` with 
+the playbook name (e.g. `env-setup -i 03-apps`). It will print an ordered task 
+list, with a description and tags that describe what the playbook will do.
+
+### Skipping Tasks
+If you'd like to _skip_ tasks in a playbook, each task have tags associated 
+with them. You can **select tags** with the `-t` option or **skip tags** with the `-s` 
+option. You can specify multiple tags by comma-delimiting. For example:
+
+- `env-setup -t node,python 04-packages`: Install only **Node & Python** packages.
+- `env-setup -s php 04-packages`: Install all packages, except **PHP** packages.
 
 ## Custom Playbook
 To get started with a custom playbook: 

@@ -12,12 +12,14 @@
         state: directory
       loop:
         "{{ pub_dotfiles_subdirs }}"
+      tags: ["pub_dotfiles"]
     - name: Ensure dotfile directories exist.
       ansible.builtin.file:
         path: "{{ item }}"
         state: directory
       loop:
         "{{ prv_dotfiles_subdirs }}"
+      tags: ["prv_dotfiles"]
 
   roles:
     - { role: geerlingguy.dotfiles,
@@ -26,16 +28,16 @@
         dotfiles_repo_local_destination: "{{ pub_dotfiles_repo_local_destination }}",
         dotfiles_repo_version: "{{ pub_dotfiles_repo_version }}",
         dotfiles_files: "{{ pub_dotfiles_files }}",
-        tags: ["print_action"] }
+        tags: ["print_action", "pub_dotfiles"] }
     - { role: geerlingguy.dotfiles,
         dotfiles_repo: "{{ prv_dotfiles_repo }}",
         dotfiles_repo_accept_hostkey: "{{ prv_dotfiles_repo_accept_hostkey }}",
         dotfiles_repo_local_destination: "{{ prv_dotfiles_repo_local_destination }}",
         dotfiles_repo_version: "{{ prv_dotfiles_repo_version }}",
         dotfiles_files: "{{ prv_dotfiles_files }}",
-        tags: ["print_action"] }
+        tags: ["print_action", "prv_dotfiles"] }
     - { role: nass600.vundle,
-        tags: ["print_action"] }
+        tags: ["print_action", "vundle"] }
 
   tasks: []
         

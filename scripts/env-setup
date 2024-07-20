@@ -92,7 +92,11 @@ run_playbook() {
     PLAYBOOK_DIR=${2:-""}
 
     if [[ -d "$PLAYBOOK_DIR" ]]; then
-        echo -e "\n${C_HIL}Running $PLAYBOOK_NAME playbook...${C_RES}"
+        if [[ -z "$ANSIBLE_PLAYBOOK_INFO" ]]; then
+          echo -e "\n${C_HIL}Running $PLAYBOOK_NAME playbook...${C_RES}"
+        else
+          echo -e "\n${C_HIL}Showing $PLAYBOOK_NAME playbook tasks...${C_RES}"
+        fi
         PWD=$(pwd)
         cd "$PLAYBOOK_DIR"
 
@@ -109,10 +113,20 @@ run_playbook() {
             ANSIBLE_EXTRA_VARS=""
         fi
 
+        ANSIBLE_TAG_FLAGS=""
+        if [[ -n "$ANSIBLE_SKIPPED_TAGS" ]]; then
+          ANSIBLE_TAG_FLAGS="--skip-tags $ANSIBLE_SKIPPED_TAGS"
+        fi
+        if [[ -n "$ANSIBLE_TAGS" ]]; then
+          ANSIBLE_TAG_FLAGS="--tags $ANSIBLE_TAGS"
+        fi
+
         # shellcheck disable=SC2086
         ansible-playbook main.yml $ANSIBLE_VERBOSE $ANSIBLE_CHECK \
+            $ANSIBLE_TAG_FLAGS                                    \
             -i inventory $ANSIBLE_SUDO                            \
-            $ANSIBLE_EXTRA_VARS
+            $ANSIBLE_EXTRA_VARS                                   \
+            $ANSIBLE_PLAYBOOK_INFO
         cd "$PWD"
         echo -e "\n${C_SUC}$PLAYBOOK_NAME playbook completed!${C_RES}"
     else
@@ -137,6 +151,12 @@ run_playbook() {
 #/      Set a new config.
 #/   $SCRIPT -C 02-cli
 #/      Run "02-cli" playbook as a "dry-run". (--check)
+#/   $SCRIPT -i 04-packages
+#/      Show "04-packages" playbook tasks.
+#/   $SCRIPT -s prv_dotfiles 01-config
+#/      Run "01-config" playbook with skipping the prv_dotfiles tasks
+#/   $SCRIPT -t pub_dotfiles 01-config
+#/      Run "01-config" playbook with only the pub_dotfiles tasks
 #/   $SCRIPT -v 03-apps
 #/      Run "03-apps" playbook in verbose mode.
 #/   $SCRIPT 04-my-playbook
@@ -146,6 +166,9 @@ run_playbook() {
 #/   --help/-h: Display this help message
 #/          -c: Set a new config
 #/          -C: Check the changes of the playbook.
+#/          -i: Get task info about a playbook.
+#/          -s: Run playbook with SKIPPED tags
+#/          -t: Run playbook with tags
 #/          -u: Update env-setup from its remote Git source
 #/          -v: Run env-setup with verbose mode
 SCRIPT=$(basename "$0")
@@ -159,15 +182,29 @@ expr "$*" : ".*--help" > /dev/null && usage
 
 # Handle options
 # Add options x: - required arg
-while getopts 'cChuv' FLAG; do
+while getopts 'cChistuv' FLAG; do
     case "${FLAG}" in
         c) shift "$((OPTIND-1))"; config "${1:-""}"; exit 0 ;;
-        h) usage; exit 0 ;;
-        u) update; exit 0 ;;
         C)
             ANSIBLE_CHECK="-C"
             shift "$((OPTIND-1))"
             ;;
+        h) usage; exit 0 ;;
+        i)
+            ANSIBLE_PLAYBOOK_INFO="--list-tasks"
+            shift "$((OPTIND-1))"
+            ;;
+        s)
+            shift "$((OPTIND-1))"
+            ANSIBLE_SKIPPED_TAGS="$1"
+            shift "$((OPTIND-1))"
+            ;;
+        t)
+            shift "$((OPTIND-1))"
+            ANSIBLE_TAGS="$1"
+            shift "$((OPTIND-1))"
+            ;;
+        u) update; exit 0 ;;
         v)
             set -vx
             ANSIBLE_VERBOSE="-vvv"
@@ -183,6 +220,9 @@ done
 ############################################################################
 ANSIBLE_SUDO="-K"
 ANSIBLE_CHECK=${ANSIBLE_CHECK:-""}
+ANSIBLE_PLAYBOOK_INFO=${ANSIBLE_PLAYBOOK_INFO:-""}
+ANSIBLE_SKIPPED_TAGS=${ANSIBLE_SKIPPED_TAGS:-""}
+ANSIBLE_TAGS=${ANSIBLE_TAGS:-""}
 ANSIBLE_VERBOSE=${ANSIBLE_VERBOSE:-""}
 # unixy | dense | debug | yaml | selective
 export ANSIBLE_STDOUT_CALLBACK=${ANSIBLE_STDOUT_CALLBACK:-"unixy"}
