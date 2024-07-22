@@ -14,7 +14,7 @@ It will build the following:
 The `scripts` directory has a few scripts to test the built infrastructure:
 
 - [scripts/env-setup](scripts/env-setup): test the [env-setup script](../scripts/env-setup).
-- [scripts/init-test](scripts/init-test): test the [init script](../scripts/init).
+- [scripts/init](scripts/init): test the [init script](../scripts/init).
 - [scripts/macos-ard-connect](scripts/macos-ard-connect): connect to the macos GUI via VNC.
 - [scripts/macos-ard-enable](scripts/macos-ard-enable): enable Apple Remote Desktop on the macos host.
 - [scripts/macos-ard-ssh](scripts/macos-ard-ssh): setup an SSH/ARD tunnel.
@@ -28,7 +28,7 @@ After running `terraform apply` you can run these commands to test env-setup on 
 ./scripts/sudo-pass linux 
 
 # test the init script that's hosted on https://example.com/env-setup
-./scripts/init-test linux https://example.com/env-setup
+./scripts/init linux https://example.com/env-setup
 
 # run/setup env-setup with an interactive prompt for the playbook
 ./scripts/env-setup linux
@@ -57,7 +57,7 @@ After running `terraform apply` you can run these commands to test env-setup on 
 ./scripts/macos-ard-connect
 
 # test the init script that's hosted on https://example.com/env-setup
-./scripts/init-test macos https://example.com/env-setup
+./scripts/init macos https://example.com/env-setup
 
 # run/setup env-setup with an interactive prompt for the playbook
 ./scripts/env-setup macos
