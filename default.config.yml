@@ -55,7 +55,7 @@ prv_dotfiles_files: []
 # useful when you don't want to keep an entire dir mapped to git
 prv_dotfiles_subdirs: []
 
-# name: env-setup.02-cli #################################################
+# name: env-setup.02-cli #######################################################
 
 # any homebrew taps needed for package(formulae)/cask defined below
 # NOTE: in linux we'll use the the community.general.homebrew* modules
