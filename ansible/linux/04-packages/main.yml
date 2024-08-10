@@ -81,7 +81,7 @@
       community.general.pipx:
         name: "{{ item.name | default(item) }}"
         state: install
-        #executable: "{{ item.executable | default('/opt/homebrew/bin/pipx') }}"
+        executable: "{{ item.executable | default('/home/linuxbrew/.linuxbrew/bin/pipx') }}"
       loop: "{{ pip_packages }}"
       ignore_errors: true
       tags: ["python"]
