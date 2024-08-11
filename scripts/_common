@@ -53,9 +53,11 @@ C_RES='\033[0;37m'
 ENVSETUP_INTERACT=${ENVSETUP_INTERACT:-"1"}
 ENVSETUP_OS=$(uname -s | tr '[:upper:]' '[:lower:]')
 INSTALL_DIR=${ENVSETUP_INSTALL_DIR:-"$HOME/env-setup"}
-TART_MACOS_IMAGE="ghcr.io/cirruslabs/macos-sonoma-vanilla:latest"
-TART_LINUX_IMAGE="ghcr.io/cirruslabs/ubuntu:latest"
-TART_MACOS_NAME="sonoma-vanilla"
-TART_LINUX_NAME="ubuntu"
+TART_MACOS_NAME=${TART_MACOS_NAME:-"sonoma-vanilla"}
+TART_LINUX_NAME=${TART_LINUX_NAME:-"ubuntu"}
+# https://github.com/orgs/cirruslabs/packages?repo_name=macos-image-templates
+TART_MACOS_IMAGE="ghcr.io/cirruslabs/macos-$TART_MACOS_NAME:latest"
+# https://github.com/orgs/cirruslabs/packages?repo_name=linux-image-templates
+TART_LINUX_IMAGE="ghcr.io/cirruslabs/$TART_LINUX_NAME:latest"
 
 ##}}}#######################################################################
