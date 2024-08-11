@@ -67,21 +67,18 @@ homebrew_taps:
 # NOTE: in linux we'll use the the community.general.homebrew* modules
 # name: geerlingguy.mac.homebrew
 envsetup_homebrew_installed_packages:
-  - antigen
   - ansible
-  - awscli
-  - aws-shell
+  - antigen
   - bat
   - composer
   - direnv
-  - duti
+  #- duti
   - fzf
   - gh
   - go
   - gitleaks
   - jq
   - libpq
-  - sijanc147/formulas/macprefs
   - mysql-client
   - neovim
   - node
@@ -107,7 +104,6 @@ envsetup_homebrew_cask_apps:
   - chromedriver
   - docker
   - google-chrome
-  - google-drive
   - font-meslo-lg-nerd-font
   - iterm2
   - postico
@@ -186,9 +182,9 @@ dockitems_remove:
 
 # defaults.yml
 # set any install app setting that should be defaulted
-envsetup_apps_macos_settings:
-  - {description: "iTerm2: Load custom settings from a folder/URL", domain: "com.googlecode.iterm2", key: "LoadPrefsFromCustomFolder", type: "bool", value: true}
-  - {description: "iTerm2: Set the custom settings folder/URL", domain: "com.googlecode.iterm2", key: "PrefsCustomFolder", type: "string", value: "\"/Users/{{ ansible_user_id }}/env-setup-prv-dotfiles/.iterm2\""}
+envsetup_apps_macos_settings: []
+  #- {description: "iTerm2: Load custom settings from a folder/URL", domain: "com.googlecode.iterm2", key: "LoadPrefsFromCustomFolder", type: "bool", value: true}
+  #- {description: "iTerm2: Set the custom settings folder/URL", domain: "com.googlecode.iterm2", key: "PrefsCustomFolder", type: "string", value: "\"/Users/{{ ansible_user_id }}/.app/iterm2\""}
 envsetup_apps_macos_sudo_settings: []
 
 # open.yml
@@ -206,14 +202,10 @@ cargo_packages:
 # composer plugins to install 
 composer_plugins: 
   - name: composer/installers
-  - name: dealerdirect/phpcodesniffer-composer-installer
 
 # php packages to install
 composer_packages:
-  - name: phpunit/phpunit
-  - name: phploc/phploc
   - name: psy/psysh
-  - name: squizlabs/php_codesniffer
 
 # go packages to install
 go_packages:
@@ -230,7 +222,6 @@ npm_packages:
   - name: eslint
   - name: npmdoctor
   - name: regexgen
-  - name: saucectl
   - name: standard
   - name: typescript
   - name: yarn
@@ -250,8 +241,8 @@ pip_packages:
 git_repo_project_dir: ~/env-setup-git-repos
 git_repo_projects:
   - name: env-setup
-    url: git@github.com:ShawnConn/env-setup.git
-    upstream: git@github.com:Luciditi/env-setup.git
+    url: git@github.com:Luciditi/env-setup.git
+    #upstream: git@github.com:Luciditi/env-setup.git
     symlink: ~/Documents/Luciditi/projects/devops/env-setup
 
 # a vendor dir where git repos will be referenced 
@@ -267,11 +258,15 @@ git_repo_vendors:
 
 # system.yml
 # the name of the host machine
-envsetup_os_hostname: ENV-SETUP-MOST
+envsetup_os_hostname: ENV-SETUP
 
 # user.yml
 # URL for the admin user
-envsetup_os_avatar_url: "https://avatars.githubusercontent.com/u/1087111"
+envsetup_os_avatar_url: "https://avatars.githubusercontent.com/u/16793781"
+
+# macos script (see https://mths.be/macos)
+envsetup_os_macos_settings: []
+envsetup_os_macos_sudo_settings: []
 
 # macos.yml
 # macos script (see https://mths.be/macos)
@@ -290,33 +285,25 @@ envsetup_os_linux_settings: []
 
 # main.yml
 # The cloud app that should be run to start syncing
-envsetup_cloud_app: "/Applications/Google Drive.app"
+envsetup_cloud_app: ""
 
 # The dir where cloud files reside
-envsetup_cloud_dir: "/Users/{{ ansible_user_id }}/Google Drive"
+envsetup_cloud_dir: ""
 
 # The dir where os setting should be stored
-envsetup_cloud_backup_dir: "env-setup/Config/{{ ansible_hostname }}/MacPrefs"
+envsetup_cloud_backup_dir: ""
 
 # The script to do the os setting backup
-envsetup_cloud_sync_script: "export MACPREFS_BACKUP_DIR=$CLOUD_SYNC_DIR && macprefs backup"
+envsetup_cloud_sync_script: "echo 'TODO: ADD SCRIPT'"
 
 # dirs.yml
 # The place for cloud file documents on the cloud file dir (and its hierarchy)
-envsetup_cloud_project_root: "env-setup/Projects"
-envsetup_cloud_project_list: 
- - MyProject
-envsetup_cloud_project_dirs:
-  - config
-  - devops
-  - keys
-  - mock-data
-  - notes
-  - patches
-  - script
+envsetup_cloud_project_root: ""
+envsetup_cloud_project_list: []
+envsetup_cloud_project_dirs: []
 
 # Where on the local filesystem to symlink to the cloud project dir
-envsetup_cloud_project_symlink: "/Users/{{ ansible_user_id }}/Documents"
+envsetup_cloud_project_symlink: ""
 
 # name: env-setup.08-prefs #####################################################
 
@@ -338,11 +325,6 @@ envsetup_prefs_macos_other_dockitems_persist:
     view: auto
     display: stack
     pos: 3
-  - name: Google Drive
-    path: "/Users/{{ ansible_user_id }}/Google Drive"
-    view: auto
-    display: stack
-    pos: 4
 
 # Dock extras (right side) items that should remove (see geerlingguy.mac.dock)
 envsetup_prefs_macos_other_dockitems_remove: []
@@ -381,7 +363,6 @@ envsetup_prefs_macos_file_extension_handlers:
 # Default apps that start on login
 envsetup_prefs_macos_login_items:
   - {name: "Google Chrome", hidden: false}
-  - {name: "Google Drive", hidden: false}
   - {name: "iTerm", hidden: false}
   - {name: "Tunnelblick", hidden: false}
 

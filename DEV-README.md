@@ -28,6 +28,11 @@ The `.00-init` playbook is designed to be an initial startup playbook that
 should only run once (a `.init` file is placed here as marker to note this). 
 All other playbooks can be ran multiple times as needed by user.
 
+### Docker
+The `docker` [directory](docker) is a configuration directory for building an 
+Ubuntu linux image with `env-setup` installed. Additional configuration files 
+are included. 
+
 ### Router
 The `router` [directory](router) is a [Hono](https://hono.dev/) URL router that delivers 
 a init bash script when `https://example.com/env-setup` is requested in a 

@@ -246,7 +246,7 @@ done
 ############################################################################
 # VARS
 ############################################################################
-ANSIBLE_SUDO="-K"
+ANSIBLE_SUDO=${ANSIBLE_SUDO:-"-K"}
 ANSIBLE_CHECK=${ANSIBLE_CHECK:-""}
 ANSIBLE_PLAYBOOK_INFO=${ANSIBLE_PLAYBOOK_INFO:-""}
 ANSIBLE_SKIPPED_TAGS=${ANSIBLE_SKIPPED_TAGS:-""}
