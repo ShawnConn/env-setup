@@ -63,6 +63,7 @@ prv_dotfiles_subdirs: []
 # https://github.com/geerlingguy/ansible-collection-mac/tree/master/roles/homebrew
 homebrew_taps:
   - riboseinc/easy-rsa
+  - sijanc147/formulas
 
 # NOTE: in linux we'll use the the community.general.homebrew* modules
 # name: geerlingguy.mac.homebrew
