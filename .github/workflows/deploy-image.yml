@@ -80,10 +80,12 @@ jobs:
             "docker/.none.config.yml") TAG="$VERSION-none" ;;
             *) TAG="$VERSION" ;;
           esac
+          REPO_TAGS="ghcr.io/${{ env.ENVSETUP_ORG }}/env-setup:$TAG"
           if [[ $LATEST == "true" ]]; then
-            REPO_TAGS="ghcr.io/${{ env.ENVSETUP_ORG }}/env-setup:$TAG,ghcr.io/${{ env.ENVSETUP_ORG }}/env-setup:latest"
-          else
-            REPO_TAGS="ghcr.io/${{ env.ENVSETUP_ORG }}/env-setup:$TAG"
+            REPO_TAGS="$REPO_TAGS,ghcr.io/${{ env.ENVSETUP_ORG }}/env-setup:latest"
+          fi
+          if [[ $CONFIG == "docker/default.config.yml" ]]; then
+            REPO_TAGS="$REPO_TAGS,ghcr.io/${{ env.ENVSETUP_ORG }}/env-setup:$VERSION"
           fi
           echo "tag=$TAG" >> $GITHUB_OUTPUT
           echo "repo_tags=$REPO_TAGS" >> $GITHUB_OUTPUT
