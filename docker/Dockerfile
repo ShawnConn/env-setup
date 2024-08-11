@@ -33,14 +33,14 @@ ARG ENVSETUP_DOTFILES_PRV_REPO_SSH=git@github.com:Luciditi/env-setup-dotfiles.gi
 ARG ENVSETUP_DOTFILES_REPO_SSH=git@github.com:Luciditi/env-setup-dotfiles.git
 ARG ENVSETUP_REPO_SSH=git@github.com:Luciditi/env-setup.git
 ARG ENVSETUP_VERSION=0.0.0
-LABEL org.opencontainers.image.authors='env-setup@luciditi.io' \
-    org.opencontainers.image.description='A development environment created by env-setup.' \
-    org.opencontainers.image.documentation='https://github.com/Luciditi/env-setup' \
-    org.opencontainers.image.licenses='Apache-2.0' \
-    org.opencontainers.image.source='https://github.com/Luciditi/env-setup' \
-    org.opencontainers.image.title='env-setup' \
-    org.opencontainers.image.url='https://github.com/Luciditi/env-setup' \
-    org.opencontainers.image.vendor='Luciditi'
+LABEL org.opencontainers.image.authors="env-setup@luciditi.io"
+LABEL org.opencontainers.image.description="A development environment created by env-setup."
+LABEL org.opencontainers.image.documentation="https://github.com/Luciditi/env-setup"
+LABEL org.opencontainers.image.licenses="MIT License"
+LABEL org.opencontainers.image.source="https://github.com/Luciditi/env-setup/docker"
+LABEL org.opencontainers.image.title="env-setup"
+LABEL org.opencontainers.image.url="https://github.com/Luciditi/env-setup"
+LABEL org.opencontainers.image.vendor="Luciditi"
 USER ${USER}
 WORKDIR /home/${USER}
 SHELL ["/bin/bash", "-c"]
