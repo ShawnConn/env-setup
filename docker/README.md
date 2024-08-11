@@ -6,8 +6,8 @@ and all its prerequisites. The image can be configured with a few build argument
 - `VER`: The default version of the base OS image.
 - `PASS`: The default password of `user` (default `password`)
 - `ENVSETUP_REPO_SSH`: The default repo of `env-setup` (default `git@github.com:Luciditi/env-setup.git`)
-- `ENVSETUP_DOTFILES_REPO_SSH`: The default repo of public dotfiles (default `git@github.com:Luciditi/env-setup.git`)
-- `ENVSETUP_DOTFILES_PRV_REPO_SSH`: The default repo of private dotfiles (default `git@github.com:Luciditi/env-setup.git`)
+- `ENVSETUP_DOTFILES_REPO_SSH`: The default repo of public dotfiles (default `git@github.com:Luciditi/env-setup-dotfiles.git`)
+- `ENVSETUP_DOTFILES_PRV_REPO_SSH`: The default repo of private dotfiles (default `git@github.com:Luciditi/env-setu-dotfilesp.git`)
 - `ENVSETUP_CONFIG`: The location of the `env-setup` config manifest.
 - `ENVSETUP_VERSION`: The version tag of the `env-setup` image.
 
