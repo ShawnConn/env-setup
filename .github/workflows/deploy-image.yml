@@ -83,15 +83,17 @@ jobs:
             *) CONFIG_TAG="null" ;;
           esac
           TAG="$VERSION-$CONFIG_TAG"
-          REPO_TAGS="ghcr.io/${{ github.repository }}:$TAG"
+          REPO="ghcr.io/${{ github.repository }}" && REPO=${REPO,,}
+          REPO_TAGS="$REPO:$TAG"
           if [[ $LATEST == "true" ]]; then
-            REPO_TAGS="$REPO_TAGS,ghcr.io/${{ github.repository }}:latest"
+            REPO_TAGS="$REPO_TAGS,$REPO:latest"
           fi
           if [[ $CONFIG == "docker/default.config.yml" ]]; then
-            REPO_TAGS="$REPO_TAGS,ghcr.io/${{ github.repository }}:$VERSION"
+            REPO_TAGS="$REPO_TAGS,$REPO:$VERSION"
           fi
           echo "tag=$TAG" >> $GITHUB_OUTPUT
           echo "config_tag=$CONFIG_TAG" >> $GITHUB_OUTPUT
+          echo "repo=$REPO" >> $GITHUB_OUTPUT
           echo "repo_tags=$REPO_TAGS" >> $GITHUB_OUTPUT
           echo "repo_date=$(date --rfc-3339=date)" >> $GITHUB_OUTPUT
           echo "repo_revision=${{ github.sha }}" >> $GITHUB_OUTPUT
@@ -102,7 +104,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            ghcr.io/${{ github.repository }}
+            ${{ steps.get-tags.outputs.repo }}
           tags: |
             type=semver,pattern={{version}}
             type=raw,value=${{ steps.get-tags.outputs.tag }}
