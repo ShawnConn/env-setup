@@ -7,13 +7,12 @@ and all its prerequisites. The image can be configured with a few build argument
 - `PASS`: The default password of `user` (default `password`)
 - `ENVSETUP_REPO_SSH`: The default repo of `env-setup` (default `git@github.com:Luciditi/env-setup.git`)
 - `ENVSETUP_DOTFILES_REPO_SSH`: The default repo of public dotfiles (default `git@github.com:Luciditi/env-setup-dotfiles.git`)
-- `ENVSETUP_DOTFILES_PRV_REPO_SSH`: The default repo of private dotfiles (default `git@github.com:Luciditi/env-setu-dotfilesp.git`)
+- `ENVSETUP_DOTFILES_PRV_REPO_SSH`: The default repo of private dotfiles (default `git@github.com:Luciditi/env-setu-dotfiles.git`)
 - `ENVSETUP_CONFIG`: The location of the `env-setup` config manifest.
 - `ENVSETUP_VERSION`: The version tag of the `env-setup` image.
 
-
-`docker run -it --rm --platform linux/amd64 -v "$HOME/.ssh/id_rsa:/home/user/.ssh/id_rsa" env-setup:latest`
-
+## Example build steps
+Here's an example to build locally:
 ```
 SSH_KEY=$HOME/.ssh/id_rsa
 ENVSETUP_CONFIG=docker/default.config.yml
@@ -31,6 +30,22 @@ docker buildx build --secret id=ssh,src="$SSH_KEY" \
   --label "org.opencontainers.image.version=$ENVSETUP_VERSION"
   -t "env-setup:$DOCKER_TAG" . -f "$DOCKERFILE"
 ```
+
+## Example run
+Here's an example to run locally:
+```
+docker run -it --rm --platform linux/amd64 -v "$HOME/.ssh/id_rsa:/home/user/.ssh/id_rsa" ghcr.io/luciditi/env-setup
+docker run -it --rm --platform linux/amd64 -v "$HOME/.ssh/id_rsa:/home/user/.ssh/id_rsa" -v "$HOME/env-setup-dotfiles:/home/user/env-setup-dotfiles" -v "$HOME/env-setup-prv-dotfiles:/home/user/env-setup-prv-dotfiles" ghcr.io/luciditi/env-setup
+alias dev-env='docker run -it --rm --platform linux/amd64 -v "${ENVSETUP_SSHKEY:-"$HOME/.ssh/id_rsa"}:/home/user/.ssh/id_rsa" -v "${ENVSETUP_DOTFILES:-"$HOME/env-setup-dotfiles"}:/home/user/env-setup-dotfiles" -v "${ENVSETUP_DOTFILES_PRV:-"$HOME/env-setup-prv-dotfiles"}:/home/user/env-setup-prv-dotfiles" ghcr.io/luciditi/env-setup'
+```
+
+## Hosted images
+You can pull images from [the GitHub Container Repo](https://github.com/Luciditi/env-setup/pkgs/container/env-setup).
+
+- `docker pull ghcr.io/luciditi/env-setup`
+- `docker pull ghcr.io/luciditi/env-setup:none`
+- `docker pull ghcr.io/luciditi/env-setup:mini`
+- `docker pull ghcr.io/luciditi/env-setup:most`
 
 # Prerequisites
 - An environment that can build a docker image from a `Dockerfile`

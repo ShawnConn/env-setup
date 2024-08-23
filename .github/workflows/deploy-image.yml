@@ -6,9 +6,11 @@ env:
   ENVSETUP_DOTFILES_PRV_REPO_SSH: ${{ github.event.inputs.dotfiles_prv_repo || 'git@github.com:Luciditi/env-setup-dotfiles.git' }}
   ENVSETUP_CONFIG: ${{ github.event.inputs.config || 'docker/default.config.yml' }}
   ENVSETUP_VERSION: ${{ github.event.inputs.version || '' }}
-  ENVSETUP_ORG: "luciditi"
 
 on:
+  #push:
+  #  tags:
+  #    - 'v[0-9].[0-9].[0-9]'
   workflow_dispatch:
     inputs:
       config:
@@ -74,22 +76,38 @@ jobs:
           VERSION="${{ env.ENVSETUP_VERSION }}"
           LATEST=${{ github.event.inputs.latest }}
           case "$CONFIG" in
-            "docker/default.config.yml") TAG="$VERSION-default" ;;
-            "docker/.mini.config.yml") TAG="$VERSION-mini" ;;
-            "docker/.most.config.yml") TAG="$VERSION-most" ;;
-            "docker/.none.config.yml") TAG="$VERSION-none" ;;
-            *) TAG="$VERSION" ;;
+            "docker/default.config.yml") CONFIG_TAG="default";;
+            "docker/.mini.config.yml") CONFIG_TAG="mini" ;;
+            "docker/.most.config.yml") CONFIG_TAG="most" ;;
+            "docker/.none.config.yml") CONFIG_TAG="none" ;;
+            *) CONFIG_TAG="null" ;;
           esac
-          REPO_TAGS="ghcr.io/${{ env.ENVSETUP_ORG }}/env-setup:$TAG"
+          TAG="$VERSION-$CONFIG_TAG"
+          REPO_TAGS="ghcr.io/${{ github.repository }}:$TAG"
           if [[ $LATEST == "true" ]]; then
-            REPO_TAGS="$REPO_TAGS,ghcr.io/${{ env.ENVSETUP_ORG }}/env-setup:latest"
+            REPO_TAGS="$REPO_TAGS,ghcr.io/${{ github.repository }}:latest"
           fi
           if [[ $CONFIG == "docker/default.config.yml" ]]; then
-            REPO_TAGS="$REPO_TAGS,ghcr.io/${{ env.ENVSETUP_ORG }}/env-setup:$VERSION"
+            REPO_TAGS="$REPO_TAGS,ghcr.io/${{ github.repository }}:$VERSION"
           fi
           echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "config_tag=$CONFIG_TAG" >> $GITHUB_OUTPUT
           echo "repo_tags=$REPO_TAGS" >> $GITHUB_OUTPUT
+          echo "repo_date=$(date --rfc-3339=date)" >> $GITHUB_OUTPUT
+          echo "repo_revision=${{ github.sha }}" >> $GITHUB_OUTPUT
         id: get-tags
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ghcr.io/${{ github.repository }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=raw,value=${{ steps.get-tags.outputs.tag }}
+            type=raw,value=${{ steps.get-tags.outputs.config_tag }}
+            type=raw,value=latest,enable=${{ github.event.inputs.latest }}
 
       - name: Build and push
         uses: docker/build-push-action@v6
@@ -104,7 +122,9 @@ jobs:
           cache-to: type=gha,mode=max
           file: docker/Dockerfile
           labels: |
-            org.opencontainers.image.ref.name=${{ env.ENVSETUP_ORG }}/env-setup-${{ steps.get-tags.outputs.tag }}
+            org.opencontainers.image.created=${{ steps.get-tags.outputs.repo_date }}
+            org.opencontainers.image.ref.name=${{ github.repository }}-${{ steps.get-tags.outputs.tag }}
+            org.opencontainers.image.revision=${{ steps.get-tags.outputs.repo_revision }}
             org.opencontainers.image.version=${{ env.ENVSETUP_VERSION }}
           platforms: linux/amd64
           push: true
