@@ -118,10 +118,13 @@ jobs:
             type=raw,value=${{ steps.get-tags.outputs.tag }}
             type=raw,value=${{ steps.get-tags.outputs.config_tag }}
             type=raw,value=latest,enable=${{ github.event.inputs.latest }}
+        env:
+          DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
 
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
+          annotations: ${{ steps.meta.outputs.annotations }}
           build-args: |
             ENVSETUP_REPO_SSH=${{ env.ENVSETUP_REPO_SSH }}
             ENVSETUP_DOTFILES_REPO_SSH=${{ env.ENVSETUP_DOTFILES_REPO_SSH }}

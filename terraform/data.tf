@@ -48,7 +48,7 @@ data "aws_ami" "macos" {
 
   filter {
     name   = "description"
-    values = ["*Ventura*"]
+    values = ["*${var.macos_version}*"]
   }
 
   filter {
