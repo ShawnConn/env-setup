@@ -18,6 +18,12 @@ variable "name" {
   type        = string
 }
 
+variable "macos_version" {
+  default     = "Sonoma"
+  description = "The version of macos to test on."
+  type        = string
+}
+
 variable "environment" {
   default     = "temp"
   description = "The environment prefix string for the AWS resources."

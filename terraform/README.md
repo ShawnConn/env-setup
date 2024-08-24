@@ -70,7 +70,7 @@ After running `terraform apply` you can run these commands to test env-setup on 
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | ~>1.0.0 |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >1.0.0 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.0 |
 | <a name="requirement_http"></a> [http](#requirement\_http) | ~> 2.0.0 |
 | <a name="requirement_local"></a> [local](#requirement\_local) | ~> 2.4 |
@@ -117,6 +117,7 @@ After running `terraform apply` you can run these commands to test env-setup on 
 | <a name="input_AWS_SECRET_KEY_IAM"></a> [AWS\_SECRET\_KEY\_IAM](#input\_AWS\_SECRET\_KEY\_IAM) | The AWS secret key for admin role auth. | `string` | n/a | yes |
 | <a name="input_environment"></a> [environment](#input\_environment) | The environment prefix string for the AWS resources. | `string` | `"temp"` | no |
 | <a name="input_hosts"></a> [hosts](#input\_hosts) | The list of hosts to enable for testing. | `map(bool)` | <pre>{<br>  "linux": true,<br>  "macos": true<br>}</pre> | no |
+| <a name="input_macos_version"></a> [macos\_version](#input\_macos\_version) | The version of macos to test on. | `string` | `"Sonoma"` | no |
 | <a name="input_name"></a> [name](#input\_name) | The unique name for the AWS resources. | `string` | `"env-setup"` | no |
 | <a name="input_region"></a> [region](#input\_region) | The default AWS region for AWS resources. | `string` | `"us-east-1"` | no |
 
