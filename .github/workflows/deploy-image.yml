@@ -53,7 +53,7 @@ jobs:
     steps:
       - name: Dispatch ${{ github.ref_name }} none Build
         run: |
-          gh workflow run "deploy-image.yml" -f config="docker/.none.config.yml" -f version="${TAG:}" latest=false --ref "$(git symbolic-ref --short -q HEAD)"
+          gh workflow run "deploy-image.yml" -f config="docker/.none.config.yml" -f version="${TAG:1}" latest=false --ref "$(git symbolic-ref --short -q HEAD)"
         env:
           TAG: ${{ github.ref_name }}
 
