@@ -1,0 +1,1 @@
+alias dev-env='docker run -it --rm --platform linux/amd64 -v "${ENVSETUP_SSHKEY:-"$HOME/.ssh/id_rsa"}:/home/user/.ssh/id_rsa" -v "${ENVSETUP_DOTFILES:-"$HOME/env-setup-dotfiles"}:/home/user/env-setup-dotfiles" -v "${ENVSETUP_DOTFILES_PRV:-"$HOME/env-setup-prv-dotfiles"}:/home/user/env-setup-prv-dotfiles" ghcr.io/luciditi/env-setup'

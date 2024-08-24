@@ -33,11 +33,9 @@ docker buildx build --secret id=ssh,src="$SSH_KEY" \
 
 ## Example run
 Here's an example to run locally:
-```
-docker run -it --rm --platform linux/amd64 -v "$HOME/.ssh/id_rsa:/home/user/.ssh/id_rsa" ghcr.io/luciditi/env-setup
-docker run -it --rm --platform linux/amd64 -v "$HOME/.ssh/id_rsa:/home/user/.ssh/id_rsa" -v "$HOME/env-setup-dotfiles:/home/user/env-setup-dotfiles" -v "$HOME/env-setup-prv-dotfiles:/home/user/env-setup-prv-dotfiles" ghcr.io/luciditi/env-setup
-alias dev-env='docker run -it --rm --platform linux/amd64 -v "${ENVSETUP_SSHKEY:-"$HOME/.ssh/id_rsa"}:/home/user/.ssh/id_rsa" -v "${ENVSETUP_DOTFILES:-"$HOME/env-setup-dotfiles"}:/home/user/env-setup-dotfiles" -v "${ENVSETUP_DOTFILES_PRV:-"$HOME/env-setup-prv-dotfiles"}:/home/user/env-setup-prv-dotfiles" ghcr.io/luciditi/env-setup'
-```
+- Run w/ SSH key mounted: `docker run -it --rm --platform linux/amd64 -v "$HOME/.ssh/id_rsa:/home/user/.ssh/id_rsa" ghcr.io/luciditi/env-setup`
+- Run w/ SSH key & dotfiles mounted: `docker run -it --rm --platform linux/amd64 -v "$HOME/.ssh/id_rsa:/home/user/.ssh/id_rsa" -v "$HOME/env-setup-dotfiles:/home/user/env-setup-dotfiles" -v "$HOME/env-setup-prv-dotfiles:/home/user/env-setup-prv-dotfiles" ghcr.io/luciditi/env-setup`
+- Add aliases in [./scripts/aliases](../scripts/aliases) and start env: `source <(curl -sL jig.io/dev-aliases) && dev-env`
 
 ## Hosted images
 You can pull images from [the GitHub Container Repo](https://github.com/Luciditi/env-setup/pkgs/container/env-setup).
