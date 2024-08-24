@@ -123,8 +123,10 @@ run_playbook() {
             # shellcheck disable=SC2086
             ansible-galaxy install $ANSIBLE_VERBOSE -r requirements.yml
         fi
-        if [[ -n "$ANSIBLE_SUDO" ]]; then
+        if [[ "$ANSIBLE_SUDO" == "-K" ]]; then
             echo -e "\n${C_WAR}Enter password for install permissions${C_RES}"
+        else
+            ANSIBLE_SUDO=""
         fi
         if [[ -f ../../../config.yml ]]; then
             ANSIBLE_EXTRA_VARS="-e @../../../config.yml"
