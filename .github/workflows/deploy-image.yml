@@ -89,35 +89,22 @@ jobs:
         env:
           ENVSETUP_SSH_KEY: ${{ secrets.ENVSETUP_SSH_KEY }}
 
-      # https://docs.docker.com/build/ci/github-actions/manage-tags-labels/
-      - name: Get Image Tags
+      - name: Get image tags
         run: |
-          CONFIG="${{ env.ENVSETUP_CONFIG }}"
-          VERSION="${{ env.ENVSETUP_VERSION }}"
-          case "$CONFIG" in
+          case "${{ env.ENVSETUP_CONFIG }}" in
             "docker/default.config.yml") CONFIG_TAG="default";;
             "docker/.mini.config.yml") CONFIG_TAG="mini" ;;
             "docker/.most.config.yml") CONFIG_TAG="most" ;;
             "docker/.none.config.yml") CONFIG_TAG="none" ;;
             *) CONFIG_TAG="null" ;;
           esac
-          TAG="$VERSION-$CONFIG_TAG"
           REPO="ghcr.io/${{ github.repository }}"
 
-          REPO_TAGS="$REPO:$TAG"
-          LATEST=${{ github.event.inputs.latest }}
-          if [[ $LATEST == "true" ]]; then
-            REPO_TAGS="$REPO_TAGS,$REPO:latest"
-          fi
-          if [[ $CONFIG == "docker/default.config.yml" ]]; then
-            REPO_TAGS="$REPO_TAGS,$REPO:$VERSION"
-          fi
-          echo "repo_tags=$REPO_TAGS" >> $GITHUB_OUTPUT
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
           echo "config_tag=$CONFIG_TAG" >> $GITHUB_OUTPUT
           echo "repo=${REPO,,}" >> $GITHUB_OUTPUT
           echo "repo_date=$(date --rfc-3339=date)" >> $GITHUB_OUTPUT
           echo "repo_revision=${{ github.sha }}" >> $GITHUB_OUTPUT
+          echo "tag=${{ env.ENVSETUP_VERSION }}-$CONFIG_TAG" >> $GITHUB_OUTPUT
         id: get-tags
 
       - name: Docker meta
@@ -159,8 +146,7 @@ jobs:
           #    push: true
           #    secret-files: |
           #      ssh=./.ssh_key_id_rsa
-          #    tags: ${{ steps.get-tags.outputs.repo_tags }}
-          #tags: ${{ steps.meta.outputs.tags }}
+          #    tags: ${{ steps.meta.outputs.tags }}
 
       #- name: Setup tmate session
         #uses: mxschmitt/action-tmate@v3
