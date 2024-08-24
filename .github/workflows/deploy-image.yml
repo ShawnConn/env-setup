@@ -8,9 +8,9 @@ env:
   ENVSETUP_VERSION: ${{ github.event.inputs.version || '' }}
 
 on:
-  #push:
-  #  tags:
-  #    - 'v[0-9].[0-9].[0-9]'
+  push:
+    tags:
+      - 'v[0-9].[0-9].[0-9]'
   workflow_dispatch:
     inputs:
       config:
@@ -45,7 +45,20 @@ on:
         default: false
 
 jobs:
+  build-on-tag:
+    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Dispatch ${{ github.ref_name }} none Build
+        run: |
+          gh workflow run "deploy-image.yml" -f config="docker/.none.config.yml" -f version="${TAG:}" latest=false --ref "$(git symbolic-ref --short -q HEAD)"
+        env:
+          TAG: ${{ github.ref_name }}
+
   build-and-deploy-image:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
       packages: write
@@ -91,6 +104,7 @@ jobs:
           if [[ $CONFIG == "docker/default.config.yml" ]]; then
             REPO_TAGS="$REPO_TAGS,$REPO:$VERSION"
           fi
+
           echo "tag=$TAG" >> $GITHUB_OUTPUT
           echo "config_tag=$CONFIG_TAG" >> $GITHUB_OUTPUT
           echo "repo=$REPO" >> $GITHUB_OUTPUT
@@ -110,6 +124,12 @@ jobs:
             type=raw,value=${{ steps.get-tags.outputs.tag }}
             type=raw,value=${{ steps.get-tags.outputs.config_tag }}
             type=raw,value=latest,enable=${{ github.event.inputs.latest }}
+
+      - name: Get Image Tags
+        run: |
+          echo $TAGS
+        env:
+          TAGS: ${{ steps.meta.outputs.tags }}
 
       - name: Build and push
         uses: docker/build-push-action@v6
@@ -133,6 +153,7 @@ jobs:
           secret-files: |
             ssh=./.ssh_key_id_rsa
           tags: ${{ steps.get-tags.outputs.repo_tags }}
+          #tags: ${{ steps.meta.outputs.tags }}
 
       #- name: Setup tmate session
         #uses: mxschmitt/action-tmate@v3
