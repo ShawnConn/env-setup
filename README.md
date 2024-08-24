@@ -80,6 +80,14 @@ option. You can specify multiple tags by comma-delimiting. For example:
 - `env-setup -t node,python 04-packages`: Install only **Node & Python** packages.
 - `env-setup -s php 04-packages`: Install all packages, except **PHP** packages.
 
+## Testing
+If you'd like to have a environment for testing deployment, `env-setup` has a 
+couple of scripts/tools that can help setup an environment:
+
+- The `docker` [directory](docker) contains a `Dockerfile` that can be used to build a Ubuntu Linux docker image with `env-setup` installed w/ all the playbooks. Pre-built images can be found on [ghcr.io/luciditi/env-setup](https://github.com/Luciditi/env-setup/tree/main/docker#hosted-images). If you want a quick one-liner to test, `source <(curl -sL jig.io/dev-aliases) && dev-env` will setup an alias for `docker run ... ghcr.io/luciditi/env-setup`
+- The `terraform` [directory](terraform) is a basic Terraform module that can stand up a SSH key and EC2 VMs (Linux (Ubuntu 20) & macOS (Sonoma)). Once built, there are a few [scripts](terraform/scripts) that can be used to test `env-setup` in the new VMs.
+- The `vm` [directory](vm) has a couple of [scripts](vm/scripts) that can stand up Linux (Ubuntu) & macOS (Sonoma) VMs in [Tart](https://tart.run/). Once built, there are a few [scripts](vm/scripts) that can be used to test `env-setup` in the new VMs.
+
 ## Custom Playbook
 To get started with a custom playbook: 
 
