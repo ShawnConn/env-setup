@@ -122,6 +122,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
+          annotations: ${{ steps.meta.outputs.annotations }}
           build-args: |
             ENVSETUP_REPO_SSH=${{ env.ENVSETUP_REPO_SSH }}
             ENVSETUP_DOTFILES_REPO_SSH=${{ env.ENVSETUP_DOTFILES_REPO_SSH }}
