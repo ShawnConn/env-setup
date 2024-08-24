@@ -92,4 +92,7 @@ RUN --mount=type=secret,id=ssh,target="/home/${USER}/.ssh/id_rsa",mode=400,uid=1
 RUN --mount=type=secret,id=ssh,target="/home/${USER}/.ssh/id_rsa",mode=400,uid=1001,gid=0 \
     /home/${USER}/env-setup/scripts/env-setup 08-prefs
 
+FROM playbooks AS boot
+RUN ["/home/linuxbrew/.linuxbrew/bin/zsh", "-c", "source ~/.zshrc;"]
+
 CMD ["/home/linuxbrew/.linuxbrew/bin/zsh"]

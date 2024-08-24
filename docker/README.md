@@ -22,12 +22,9 @@ DOCKERFILE=docker/Dockerfile
 DOCKER_PLATFORMS=linux/amd64
 DOCKER_TAG=$ENVSETUP_VERSION-default
 
-docker buildx build --secret id=ssh,src="$SSH_KEY" \ 
-  --platform $DOCKER_PLATFORMS \ 
-  --build-arg="ENVSETUP_CONFIG=$ENVSETUP_CONFIG" \
-  --build-arg="ENVSETUP_VERSION=$ENVSETUP_VERSION" \
-  --label "org.opencontainers.image.ref.name=luciditi/env-setup-$DOCKER_TAG"
-  --label "org.opencontainers.image.version=$ENVSETUP_VERSION"
+docker buildx build --secret id=ssh,src="$SSH_KEY" --platform $DOCKER_PLATFORMS \
+  --build-arg="ENVSETUP_CONFIG=$ENVSETUP_CONFIG" --build-arg="ENVSETUP_VERSION=$ENVSETUP_VERSION" \
+  --label "org.opencontainers.image.ref.name=luciditi/env-setup-$DOCKER_TAG" --label "org.opencontainers.image.version=$ENVSETUP_VERSION" \
   -t "env-setup:$DOCKER_TAG" . -f "$DOCKERFILE"
 ```
 
