@@ -54,9 +54,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Dispatch ${{ github.ref_name }} none Build
+      - name: Dispatch ${{ github.ref_name }} Builds
         run: |
           gh workflow run "deploy-image.yml" -f config="docker/.none.config.yml" -f version="${TAG:1}" latest=false --ref "$(git symbolic-ref --short -q HEAD)"
+          gh workflow run "deploy-image.yml" -f config="docker/.mini.config.yml" -f version="${TAG:1}" latest=false --ref "$(git symbolic-ref --short -q HEAD)"
+          gh workflow run "deploy-image.yml" -f config="docker/default.config.yml" -f version="${TAG:1}" latest=false --ref "$(git symbolic-ref --short -q HEAD)"
+          gh workflow run "deploy-image.yml" -f config="docker/.most.config.yml" -f version="${TAG:1}" latest=false --ref "$(git symbolic-ref --short -q HEAD)"
         env:
           TAG: ${{ github.ref_name }}
           GH_TOKEN: ${{ github.token }}
@@ -91,7 +94,6 @@ jobs:
         run: |
           CONFIG="${{ env.ENVSETUP_CONFIG }}"
           VERSION="${{ env.ENVSETUP_VERSION }}"
-          LATEST=${{ github.event.inputs.latest }}
           case "$CONFIG" in
             "docker/default.config.yml") CONFIG_TAG="default";;
             "docker/.mini.config.yml") CONFIG_TAG="mini" ;;
@@ -100,19 +102,20 @@ jobs:
             *) CONFIG_TAG="null" ;;
           esac
           TAG="$VERSION-$CONFIG_TAG"
-          REPO="ghcr.io/${{ github.repository }}" && REPO=${REPO,,}
+          REPO="ghcr.io/${{ github.repository }}"
+
           REPO_TAGS="$REPO:$TAG"
+          LATEST=${{ github.event.inputs.latest }}
           if [[ $LATEST == "true" ]]; then
             REPO_TAGS="$REPO_TAGS,$REPO:latest"
           fi
           if [[ $CONFIG == "docker/default.config.yml" ]]; then
             REPO_TAGS="$REPO_TAGS,$REPO:$VERSION"
           fi
-
+          echo "repo_tags=$REPO_TAGS" >> $GITHUB_OUTPUT
           echo "tag=$TAG" >> $GITHUB_OUTPUT
           echo "config_tag=$CONFIG_TAG" >> $GITHUB_OUTPUT
-          echo "repo=$REPO" >> $GITHUB_OUTPUT
-          echo "repo_tags=$REPO_TAGS" >> $GITHUB_OUTPUT
+          echo "repo=${REPO,,}" >> $GITHUB_OUTPUT
           echo "repo_date=$(date --rfc-3339=date)" >> $GITHUB_OUTPUT
           echo "repo_revision=${{ github.sha }}" >> $GITHUB_OUTPUT
         id: get-tags
@@ -124,7 +127,7 @@ jobs:
           images: |
             ${{ steps.get-tags.outputs.repo }}
           tags: |
-            type=semver,pattern={{version}}
+            type=semver,pattern={{version}},value="${{ env.ENVSETUP_VERSION }}",enable=${{ github.event.inputs.config == 'docker/default.config.yml' }}
             type=raw,value=${{ steps.get-tags.outputs.tag }}
             type=raw,value=${{ steps.get-tags.outputs.config_tag }}
             type=raw,value=latest,enable=${{ github.event.inputs.latest }}
@@ -135,28 +138,28 @@ jobs:
         env:
           TAGS: ${{ steps.meta.outputs.tags }}
 
-      - name: Build and push
-        uses: docker/build-push-action@v6
-        with:
-          build-args: |
-            ENVSETUP_REPO_SSH=${{ env.ENVSETUP_REPO_SSH }}
-            ENVSETUP_DOTFILES_REPO_SSH=${{ env.ENVSETUP_DOTFILES_REPO_SSH }}
-            ENVSETUP_DOTFILES_PRV_REPO_SSH=${{ env.ENVSETUP_DOTFILES_PRV_REPO_SSH }}
-            ENVSETUP_CONFIG=${{ env.ENVSETUP_CONFIG }}
-            ENVSETUP_VERSION=${{ env.ENVSETUP_VERSION }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          file: docker/Dockerfile
-          labels: |
-            org.opencontainers.image.created=${{ steps.get-tags.outputs.repo_date }}
-            org.opencontainers.image.ref.name=${{ github.repository }}-${{ steps.get-tags.outputs.tag }}
-            org.opencontainers.image.revision=${{ steps.get-tags.outputs.repo_revision }}
-            org.opencontainers.image.version=${{ env.ENVSETUP_VERSION }}
-          platforms: linux/amd64
-          push: true
-          secret-files: |
-            ssh=./.ssh_key_id_rsa
-          tags: ${{ steps.get-tags.outputs.repo_tags }}
+          #- name: Build and push
+          #  uses: docker/build-push-action@v6
+          #  with:
+          #    build-args: |
+          #      ENVSETUP_REPO_SSH=${{ env.ENVSETUP_REPO_SSH }}
+          #      ENVSETUP_DOTFILES_REPO_SSH=${{ env.ENVSETUP_DOTFILES_REPO_SSH }}
+          #      ENVSETUP_DOTFILES_PRV_REPO_SSH=${{ env.ENVSETUP_DOTFILES_PRV_REPO_SSH }}
+          #      ENVSETUP_CONFIG=${{ env.ENVSETUP_CONFIG }}
+          #      ENVSETUP_VERSION=${{ env.ENVSETUP_VERSION }}
+          #    cache-from: type=gha
+          #    cache-to: type=gha,mode=max
+          #    file: docker/Dockerfile
+          #    labels: |
+          #      org.opencontainers.image.created=${{ steps.get-tags.outputs.repo_date }}
+          #      org.opencontainers.image.ref.name=${{ github.repository }}-${{ steps.get-tags.outputs.tag }}
+          #      org.opencontainers.image.revision=${{ steps.get-tags.outputs.repo_revision }}
+          #      org.opencontainers.image.version=${{ env.ENVSETUP_VERSION }}
+          #    platforms: linux/amd64
+          #    push: true
+          #    secret-files: |
+          #      ssh=./.ssh_key_id_rsa
+          #    tags: ${{ steps.get-tags.outputs.repo_tags }}
           #tags: ${{ steps.meta.outputs.tags }}
 
       #- name: Setup tmate session
