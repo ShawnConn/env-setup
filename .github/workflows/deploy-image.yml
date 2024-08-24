@@ -127,7 +127,7 @@ jobs:
           images: |
             ${{ steps.get-tags.outputs.repo }}
           tags: |
-            type=semver,pattern={{version}},value="${{ env.ENVSETUP_VERSION }}",enable=${{ github.event.inputs.config == 'docker/default.config.yml' }}
+            type=semver,pattern={{version}},value=${{ env.ENVSETUP_VERSION }},enable=${{ github.event.inputs.config == 'docker/default.config.yml' }}
             type=raw,value=${{ steps.get-tags.outputs.tag }}
             type=raw,value=${{ steps.get-tags.outputs.config_tag }}
             type=raw,value=latest,enable=${{ github.event.inputs.latest }}
