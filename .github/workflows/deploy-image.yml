@@ -56,6 +56,7 @@ jobs:
           gh workflow run "deploy-image.yml" -f config="docker/.none.config.yml" -f version="${TAG:1}" latest=false --ref "$(git symbolic-ref --short -q HEAD)"
         env:
           TAG: ${{ github.ref_name }}
+          GH_TOKEN: ${{ github.token }}
 
   build-and-deploy-image:
     if: github.event_name == 'workflow_dispatch'
