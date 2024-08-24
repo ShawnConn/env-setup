@@ -51,6 +51,9 @@ jobs:
     permissions:
       actions: write
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Dispatch ${{ github.ref_name }} none Build
         run: |
           gh workflow run "deploy-image.yml" -f config="docker/.none.config.yml" -f version="${TAG:1}" latest=false --ref "$(git symbolic-ref --short -q HEAD)"
