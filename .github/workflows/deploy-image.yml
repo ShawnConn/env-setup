@@ -58,7 +58,7 @@ jobs:
         run: |
           gh workflow run "deploy-image.yml" -f config="docker/.none.config.yml" -f version="${TAG:1}" latest=false --ref "$(git symbolic-ref --short -q HEAD)"
           gh workflow run "deploy-image.yml" -f config="docker/.mini.config.yml" -f version="${TAG:1}" latest=false --ref "$(git symbolic-ref --short -q HEAD)"
-          gh workflow run "deploy-image.yml" -f config="docker/default.config.yml" -f version="${TAG:1}" latest=false --ref "$(git symbolic-ref --short -q HEAD)"
+          gh workflow run "deploy-image.yml" -f config="docker/default.config.yml" -f version="${TAG:1}" latest=true --ref "$(git symbolic-ref --short -q HEAD)"
           gh workflow run "deploy-image.yml" -f config="docker/.most.config.yml" -f version="${TAG:1}" latest=false --ref "$(git symbolic-ref --short -q HEAD)"
         env:
           TAG: ${{ github.ref_name }}
