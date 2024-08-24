@@ -45,7 +45,7 @@ on:
         default: false
 
 jobs:
-  build-on-tag:
+  dispatch-builds:
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     permissions:
@@ -119,34 +119,28 @@ jobs:
             type=raw,value=${{ steps.get-tags.outputs.config_tag }}
             type=raw,value=latest,enable=${{ github.event.inputs.latest }}
 
-      - name: Get Image Tags
-        run: |
-          echo $TAGS
-        env:
-          TAGS: ${{ steps.meta.outputs.tags }}
-
-          #- name: Build and push
-          #  uses: docker/build-push-action@v6
-          #  with:
-          #    build-args: |
-          #      ENVSETUP_REPO_SSH=${{ env.ENVSETUP_REPO_SSH }}
-          #      ENVSETUP_DOTFILES_REPO_SSH=${{ env.ENVSETUP_DOTFILES_REPO_SSH }}
-          #      ENVSETUP_DOTFILES_PRV_REPO_SSH=${{ env.ENVSETUP_DOTFILES_PRV_REPO_SSH }}
-          #      ENVSETUP_CONFIG=${{ env.ENVSETUP_CONFIG }}
-          #      ENVSETUP_VERSION=${{ env.ENVSETUP_VERSION }}
-          #    cache-from: type=gha
-          #    cache-to: type=gha,mode=max
-          #    file: docker/Dockerfile
-          #    labels: |
-          #      org.opencontainers.image.created=${{ steps.get-tags.outputs.repo_date }}
-          #      org.opencontainers.image.ref.name=${{ github.repository }}-${{ steps.get-tags.outputs.tag }}
-          #      org.opencontainers.image.revision=${{ steps.get-tags.outputs.repo_revision }}
-          #      org.opencontainers.image.version=${{ env.ENVSETUP_VERSION }}
-          #    platforms: linux/amd64
-          #    push: true
-          #    secret-files: |
-          #      ssh=./.ssh_key_id_rsa
-          #    tags: ${{ steps.meta.outputs.tags }}
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          build-args: |
+            ENVSETUP_REPO_SSH=${{ env.ENVSETUP_REPO_SSH }}
+            ENVSETUP_DOTFILES_REPO_SSH=${{ env.ENVSETUP_DOTFILES_REPO_SSH }}
+            ENVSETUP_DOTFILES_PRV_REPO_SSH=${{ env.ENVSETUP_DOTFILES_PRV_REPO_SSH }}
+            ENVSETUP_CONFIG=${{ env.ENVSETUP_CONFIG }}
+            ENVSETUP_VERSION=${{ env.ENVSETUP_VERSION }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          file: docker/Dockerfile
+          labels: |
+            org.opencontainers.image.created=${{ steps.get-tags.outputs.repo_date }}
+            org.opencontainers.image.ref.name=${{ github.repository }}-${{ steps.get-tags.outputs.tag }}
+            org.opencontainers.image.revision=${{ steps.get-tags.outputs.repo_revision }}
+            org.opencontainers.image.version=${{ env.ENVSETUP_VERSION }}
+          platforms: linux/amd64
+          push: true
+          secret-files: |
+            ssh=./.ssh_key_id_rsa
+          tags: ${{ steps.meta.outputs.tags }}
 
       #- name: Setup tmate session
         #uses: mxschmitt/action-tmate@v3
