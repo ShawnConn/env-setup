@@ -6,13 +6,14 @@ A workstation provisioner powered by [Ansible](https://www.ansible.com/) / [Home
 ## Quickstart
 Get started with `env-setup`:
 
-1. Init: `bash <(curl -sL jig.io/env-setup)`
+1. Init: `bash <(curl -sL jig.io/env-setup)` 
+    - or `brew install luciditi/tap/env-setup` with [Homebrew](https://brew.sh/).
 2. Config: `env-setup -c` 
-  - `none`: You want an **empty** config.
-  - `mini`: You want a **minimum** config.
-  - `default`: You want a **workable default** config.
-  - `most`: You want it **all**.
-  - `custom`: You want a **new** `config.yml` config started.
+    - `none`: You want an **empty** config.
+    - `mini`: You want a **minimum** config.
+    - `default`: You want a **workable default** config.
+    - `most`: You want it **all**.
+    - `custom`: You want a **new** `config.yml` config started.
 3. Run: `env-setup`
 
 ## Usage
@@ -84,9 +85,13 @@ option. You can specify multiple tags by comma-delimiting. For example:
 If you'd like to have a environment for testing deployment, `env-setup` has a 
 couple of scripts/tools that can help setup an environment:
 
-- The `docker` [directory](docker) contains a `Dockerfile` that can be used to build a Ubuntu Linux docker image with `env-setup` installed w/ all the playbooks. Pre-built images can be found on [ghcr.io/luciditi/env-setup](https://github.com/Luciditi/env-setup/tree/main/docker#hosted-images). If you want a quick one-liner to test, `source <(curl -sL jig.io/dev-aliases) && dev-env` will setup an alias for `docker run ... ghcr.io/luciditi/env-setup`
-- The `terraform` [directory](terraform) is a basic Terraform module that can stand up a SSH key and EC2 VMs (Linux (Ubuntu 20) & macOS (Sonoma)). Once built, there are a few [scripts](terraform/scripts) that can be used to test `env-setup` in the new VMs.
-- The `vm` [directory](vm) has a couple of [scripts](vm/scripts) that can stand up Linux (Ubuntu) & macOS (Sonoma) VMs in [Tart](https://tart.run/). Once built, there are a few [scripts](vm/scripts) that can be used to test `env-setup` in the new VMs.
+- The `docker` [directory](docker) contains a `Dockerfile` that can be used to build a Ubuntu Linux docker image with `env-setup` installed w/ all the playbooks. 
+    - Pre-built images can be found on [ghcr.io/luciditi/env-setup](https://github.com/Luciditi/env-setup/tree/main/docker#hosted-images). 
+    - If you want a quick one-liner to test, `source <(curl -sL jig.io/dev-aliases) && dev-env` will setup an alias for `docker run ... ghcr.io/luciditi/env-setup`
+- The `terraform` [directory](terraform) is a basic Terraform module that can stand up a SSH key and EC2 VMs (Linux (Ubuntu 20) & macOS (Sonoma)). 
+    - Once built, there are a few [scripts](terraform/scripts) that can be used to test `env-setup` in the new VMs.
+- The `vm` [directory](vm) has a couple of [scripts](vm/scripts) that can stand up Linux (Ubuntu) & macOS (Sonoma) VMs in [Tart](https://tart.run/). 
+    - Once built, there are a few [scripts](vm/scripts) that can be used to test `env-setup` in the new VMs.
 
 ## Custom Playbook
 To get started with a custom playbook: 
