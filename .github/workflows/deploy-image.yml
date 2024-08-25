@@ -53,6 +53,15 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          path: ./env-setup
+
+      - name: Checkout Homebrew tap repo
+        uses: actions/checkout@v4
+        with:
+          repository: luciditi/homebrew-tap
+          token: ${{ github.token }}
+          path: ./homebrew-tap
 
       - name: Dispatch ${{ github.ref_name }} Builds
         run: |
@@ -63,6 +72,29 @@ jobs:
         env:
           TAG: ${{ github.ref_name }}
           GH_TOKEN: ${{ github.token }}
+        working-directory: ./env-setup
+
+      - name: Setup deploy key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+            ssh-private-key: ${{ secrets.HOMEBREW_TAPS_SSH_KEY }}
+
+      - name: Create env-setup Brew Formula release
+        run: |
+          export RELEASE_URL="https://github.com/$REPO/archive/refs/tags/$TAG.tar.gz"
+          export SHA256=$(openssl sha256 <(curl -sL "$RELEASE_URL") | cut -d' ' -f2)
+          envsubst '$RELEASE_URL,$SHA256' < "Formula/.templates/.$FORMULA.tpl" > "Formula/$FORMULA.rb"
+
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add "Formula/$FORMULA.rb"
+          git commit -m "Homebrew: $FORMULA: $TAG"
+          git push
+        env:
+          FORMULA: env-setup
+          REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        working-directory: ./homebrew-tap
 
   build-and-deploy-image:
     if: github.event_name == 'workflow_dispatch'
@@ -144,6 +176,3 @@ jobs:
           secret-files: |
             ssh=./.ssh_key_id_rsa
           tags: ${{ steps.meta.outputs.tags }}
-
-      #- name: Setup tmate session
-        #uses: mxschmitt/action-tmate@v3
