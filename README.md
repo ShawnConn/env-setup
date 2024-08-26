@@ -92,6 +92,7 @@ There are a few environment variables that can be overridden to change behavior:
 - **RunTime:**
     - `ANSIBLE_SUDO`: env-setup runs ansible w/ a sudo prompt, set to `-n` to disable (default: `-K`)
     - `ANSIBLE_CHECK`: env-setup runs ansible w/ a dry-run check, set to `-C` to enable (default: ``)
+    - `ANSIBLE_STDOUT_CALLBACK`: env-setup runs ansible w/ a differ status update, set one of these options: `unixy | dense | debug | yaml | selective` (default: `unixy`)
     - `ANSIBLE_PLAYBOOK_INFO`: env-setup runs ansible w/ a display of playbook steps, set to `--list-tasks` to enable (default: ``)
     - `ANSIBLE_SKIPPED_TAGS`: env-setup runs ansible w/ skipping tags, set to a comma-delimited list of tags to skip (default: ``)
     - `ANSIBLE_TAGS`: env-setup runs ansible w/ specific tags, set to a comma-delimited list of tags to run (default: ``)
