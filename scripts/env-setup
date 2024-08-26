@@ -174,6 +174,8 @@ run_playbook() {
 #/      Run "02-cli" playbook as a "dry-run". (--check)
 #/   $SCRIPT -i 04-packages
 #/      Show "04-packages" playbook tasks.
+#/   $SCRIPT -e
+#/      Open the custom config.yml for editing via $EDITOR
 #/   $SCRIPT -s prv_dotfiles 01-config
 #/      Run "01-config" playbook with skipping the prv_dotfiles tasks
 #/   $SCRIPT -t pub_dotfiles 01-config
@@ -188,6 +190,7 @@ run_playbook() {
 #/          -c: Set a new config
 #/          -C: Check the changes of the playbook.
 #/          -i: Get task info about a playbook.
+#/          -e: Open custom config.yml w/ $EDITOR
 #/          -s: Run playbook with SKIPPED tags
 #/          -t: Run playbook with tags
 #/          -u: Update env-setup from its remote Git source
@@ -203,7 +206,7 @@ expr "$*" : ".*--help" > /dev/null && usage
 
 # Handle options
 # Add options x: - required arg
-while getopts 'cChistuv' FLAG; do
+while getopts 'cCheistuv' FLAG; do
     # shellcheck disable=SC2317
     case "${FLAG}" in
 
@@ -215,6 +218,12 @@ while getopts 'cChistuv' FLAG; do
             ;;
 
         h) usage; exit 0 ;;
+
+        e)
+            $EDITOR "$ENVSETUP_DIR/config.yml"
+            echo -e "${C_SUC}Updated ${C_WAR}$ENVSETUP_DIR/config.yml${C_RES}"
+            exit 0
+            ;;
 
         i)
             ANSIBLE_PLAYBOOK_INFO="--list-tasks"
