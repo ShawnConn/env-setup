@@ -81,6 +81,22 @@ option. You can specify multiple tags by comma-delimiting. For example:
 - `env-setup -t node,python 04-packages`: Install only **Node & Python** packages.
 - `env-setup -s php 04-packages`: Install all packages, except **PHP** packages.
 
+### Environment Variable Overrides 
+There are a few environment variables that can be overridden to change behavior:
+
+- **Init:**
+    - `ENVSETUP_INTERACT`: enable interactive prompts during init (default `1`)
+    - `ENVSETUP_KEY_FILE`: the SSH key path created during init (default: `$HOME/.ssh/id_rsa`)
+    - `ENVSETUP_KEY_FILE`: the SSH key comment created during init (default: `env-setup:$USER@$(hostname)`)
+    - `ENVSETUP_INSTALL_DIR`: the path to install env-setup during init (default: `$HOME/env-setup`)
+- **RunTime:**
+    - `ANSIBLE_SUDO`: env-setup runs ansible w/ a sudo prompt, set to `-n` to disable (default: `-K`)
+    - `ANSIBLE_CHECK`: env-setup runs ansible w/ a dry-run check, set to `-C` to enable (default: ``)
+    - `ANSIBLE_PLAYBOOK_INFO`: env-setup runs ansible w/ a display of playbook steps, set to `--list-tasks` to enable (default: ``)
+    - `ANSIBLE_SKIPPED_TAGS`: env-setup runs ansible w/ skipping tags, set to a comma-delimited list of tags to skip (default: ``)
+    - `ANSIBLE_TAGS`: env-setup runs ansible w/ specific tags, set to a comma-delimited list of tags to run (default: ``)
+    - `ANSIBLE_VERBOSE`: env-setup runs ansible w/ verbosity, set to `-vvv` to enable (default: ``)
+
 ## Testing
 If you'd like to have a environment for testing deployment, `env-setup` has a 
 couple of scripts/tools that can help setup an environment:
