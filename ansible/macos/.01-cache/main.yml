@@ -1,0 +1,32 @@
+---
+- name: Pre-cache Hombrew and other installs
+  hosts: all
+
+  vars_files:
+    - ../../../default.config.yml
+
+  pre_tasks: []
+
+  roles: []
+
+  tasks:
+    - name: Retrieve Homebrew cache dir
+      set_fact:
+        homebrew_cache: "{{ lookup('pipe', 'brew --cache') }}"
+      tags: ["cache"]
+
+    - name: Cache Homebrew packages to {{ homebrew_cache }}
+      command: brew fetch "{{ item }}"
+      loop: "{{ envsetup_homebrew_installed_packages }}"
+      ignore_errors: yes
+      tags: ["cache"]
+
+    - name: Cache Homebrew casks to {{ homebrew_cache }}
+      command: brew fetch --cask "{{ packages[item] }}"
+      loop: "{{ envsetup_homebrew_cask_apps }}"
+      ignore_errors: true
+      tags: ["cache"]
+
+    # @TODO: Cache for RUST/PHP/GO/RUBY/NODE/PYTHON
+
+  post_tasks: []
