@@ -110,7 +110,13 @@ couple of scripts/tools that can help setup an environment:
 - The `terraform` [directory](terraform) is a basic Terraform module that can stand up a SSH key and EC2 VMs (Linux (Ubuntu 20) & macOS (Sonoma)). 
     - Once built, there are a few [scripts](terraform/scripts) that can be used to test `env-setup` in the new VMs.
 - The `vm` [directory](vm) has a couple of [scripts](vm/scripts) that can stand up Linux (Ubuntu) & macOS (Sonoma) VMs in [Tart](https://tart.run/). 
-    - Once built, there are a few [scripts](vm/scripts) that can be used to test `env-setup` in the new VMs.
+    - Run `eval "$(env-setup -A)"` to create `env-vm-*` aliases:
+    - Run `env-vm-create` to create a new VM
+    - Run `env-vm-start` to run the VM
+    - Run `env-vm-init` to initialize the VM with `env-setup`
+    - Run `env-vm-ssh` to shell into the VM
+    - Run `env-vm-env-setup` to run `env-setup` inside the VM
+    - Run `env-vm-stop` to stop the VM
 
 ## Custom Playbook
 To get started with a custom playbook: 
