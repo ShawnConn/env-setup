@@ -220,7 +220,7 @@ while getopts 'AcCheistuv' FLAG; do
             echo "alias env-vm-scp=\"$INSTALL_DIR/vm/scripts/scp\""
             echo "alias env-vm-ssh=\"$INSTALL_DIR/vm/scripts/ssh\""
             echo "alias env-vm-start=\"$INSTALL_DIR/vm/scripts/start\""
-            echo "alias env-vm-stop=\"$INSTALL_DIR/vm/script/stop\""
+            echo "alias env-vm-stop=\"$INSTALL_DIR/vm/scripts/stop\""
             exit 0
             shift "$((OPTIND-1))"
             ;;
