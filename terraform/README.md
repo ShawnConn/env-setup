@@ -73,7 +73,6 @@ After running `terraform apply` you can run these commands to test env-setup on 
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >1.0.0 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.0 |
-| <a name="requirement_http"></a> [http](#requirement\_http) | ~> 2.0.0 |
 | <a name="requirement_local"></a> [local](#requirement\_local) | ~> 2.4 |
 | <a name="requirement_tls"></a> [tls](#requirement\_tls) | ~> 4.0 |
 
@@ -81,9 +80,9 @@ After running `terraform apply` you can run these commands to test env-setup on 
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 5.7.0 |
-| <a name="provider_http"></a> [http](#provider\_http) | 2.0.0 |
-| <a name="provider_local"></a> [local](#provider\_local) | 2.4.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 5.94.1 |
+| <a name="provider_http"></a> [http](#provider\_http) | 3.4.5 |
+| <a name="provider_local"></a> [local](#provider\_local) | 2.5.2 |
 
 ## Modules
 

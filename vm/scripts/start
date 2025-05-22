@@ -29,4 +29,4 @@ echo -e "\n${C_HIL}Looking for $VM_NAME:${C_RES}"
 tart get "$VM_NAME"
 
 echo -e "\n${C_HIL}Starting $VM_NAME:${C_RES}"
-tart run "$VM_NAME" &
+tart run --vnc "$VM_NAME" &
