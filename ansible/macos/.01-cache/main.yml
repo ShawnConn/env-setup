@@ -27,6 +27,12 @@
       ignore_errors: true
       tags: ["cache"]
 
+    - name: Cache Rust Cargo packages
+      command: $(brew --prefix rust)/bin/cargo fetch "{{ item.name }}"
+      loop: "{{ cargo_packages }}"
+      ignore_errors: true
+      tags: ["cache", "rust"]
+
     # @TODO: Cache for RUST/PHP/GO/RUBY/NODE/PYTHON
 
   post_tasks: []
