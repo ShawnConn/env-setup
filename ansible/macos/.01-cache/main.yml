@@ -1,0 +1,34 @@
+---
+- name: Cache PHP Composer Packages and Plugins
+  hosts: all
+  gather_facts: true # Some modules might need facts, good to have
+
+  vars_files:
+    - ../../../default.config.yml # To get composer_packages, composer_plugins, and composer_cache_directory
+
+  tasks:
+    - name: Ensure Composer cache directory exists
+      ansible.builtin.file:
+        path: "{{ composer_cache_directory | expanduser }}" # expanduser to handle ~
+        state: directory
+        mode: '0755'
+
+    - name: Cache Composer plugins
+      community.general.composer:
+        command: download # Download only
+        arguments: "{{ item.name }}"
+        global_command: true # Matches how they are installed in 04-packages
+        composer_home: "{{ composer_cache_directory | expanduser }}"
+      loop: "{{ composer_plugins }}"
+      when: composer_plugins is defined and composer_plugins | length > 0
+      ignore_errors: true # Continue if a package fails to cache
+
+    - name: Cache Composer packages
+      community.general.composer:
+        command: download # Download only
+        arguments: "{{ item.name }}"
+        global_command: true # Matches how they are installed in 04-packages
+        composer_home: "{{ composer_cache_directory | expanduser }}"
+      loop: "{{ composer_packages }}"
+      when: composer_packages is defined and composer_packages | length > 0
+      ignore_errors: true # Continue if a package fails to cache
