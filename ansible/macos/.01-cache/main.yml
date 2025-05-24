@@ -27,6 +27,23 @@
       ignore_errors: true
       tags: ["cache"]
 
+    - name: Retrieve Go cache dir
+      command: go env GOCACHE
+      register: go_cache_dir_output
+      changed_when: false
+      tags: ["cache", "go"]
+
+    - name: Set Go cache directory fact
+      set_fact:
+        go_cache_dir: "{{ go_cache_dir_output.stdout | trim }}"
+      tags: ["cache", "go"]
+
+    - name: Cache Go packages to {{ go_cache_dir }}
+      command: go get -d "{{ item.name }}"
+      loop: "{{ go_packages }}"
+      ignore_errors: yes
+      tags: ["cache", "go"]
+
     # @TODO: Cache for RUST/PHP/GO/RUBY/NODE/PYTHON
 
   post_tasks: []
