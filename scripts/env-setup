@@ -170,6 +170,8 @@ run_playbook() {
 #/      Start $SCRIPT to select playbooks to setup.
 #/   $SCRIPT -A
 #/      Generate aliases to be sourced with "eval "$(env-setup -A)
+#/   $SCRIPT -b
+#/      Create cached packages
 #/   $SCRIPT -c
 #/      Set a new config.
 #/   $SCRIPT -C 02-cli
@@ -209,7 +211,7 @@ expr "$*" : ".*--help" > /dev/null && usage
 
 # Handle options
 # Add options x: - required arg
-while getopts 'AcCheistuv' FLAG; do
+while getopts 'AbcCheistuv' FLAG; do
     # shellcheck disable=SC2317
     case "${FLAG}" in
 
@@ -223,6 +225,10 @@ while getopts 'AcCheistuv' FLAG; do
             echo "alias env-vm-stop=\"$INSTALL_DIR/vm/script/stop\""
             exit 0
             shift "$((OPTIND-1))"
+            ;;
+
+        b)
+            ENVSETUP_BACKUP_CACHE=""
             ;;
 
         c) shift "$((OPTIND-1))"; config "${1:-""}"; exit 0 ;;
@@ -282,6 +288,8 @@ ANSIBLE_VERBOSE=${ANSIBLE_VERBOSE:-""}
 export ANSIBLE_STDOUT_CALLBACK=${ANSIBLE_STDOUT_CALLBACK:-"unixy"}
 export ANSIBLE_ROLES_PATH="$HOME/.ansible/roles"
 ENVSETUP_SELECT_MSG="Select an env-setup playbook (enter q to quit):"
+ENVSETUP_BACKUP_CACHE=${ENVSETUP_BACKUP_CACHE:-""}
+CACHE_PLAYBOOK=".01-cache"
 INIT_PLAYBOOK=".00-init"
 PY_VER=$(python3 -m site --user-site | cut -d'/' -f6)
 export PATH="$HOME/Library/Python/$PY_VER/bin:/usr/local/bin:$PATH"
@@ -290,6 +298,8 @@ PLAYBOOK=${1:-""}
 ############################################################################
 # MAIN
 ############################################################################
+
+## PRE-RUN CHECKS
 
 SUGGEST_ANSIBLE=$(if [[ -x "$(command -v ansible)" ]]; then \
     echo "0"; else echo "${ENVSETUP_SUGGEST_ANSIBLE:-1}"; fi)
@@ -334,6 +344,13 @@ esac
 if [[ ! -f "$PLAYBOOKS/$INIT_PLAYBOOK/.init" ]]; then
     run_playbook "Initial" "$PLAYBOOKS/$INIT_PLAYBOOK"
 fi
+
+if [[ -n "$ENVSETUP_BACKUP_CACHE" ]]; then
+    run_playbook "Caching" "$PLAYBOOKS/$CACHE_PLAYBOOK"
+    exit 0
+fi
+
+## MAIN PLAYBOOK RUN
 
 if [[ -z "$PLAYBOOK" ]]; then
     echo -e "${C_SUC}$ENVSETUP_SELECT_MSG${C_RES}\n"
