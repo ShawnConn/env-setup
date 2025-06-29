@@ -25,7 +25,6 @@
         command: config
         global_command: true
         arguments: allow-plugins.{{ item.name }} true
-        composer_home: "{{ composer_cache_directory | expanduser }}"
       loop: "{{ composer_plugins }}"
       ignore_errors: true
       tags: ["php"]
@@ -35,7 +34,6 @@
         command: require
         global_command: true
         arguments: "{{ item.name }}"
-        composer_home: "{{ composer_cache_directory | expanduser }}"
       loop: "{{ composer_packages }}"
       ignore_errors: true
       tags: ["php"]

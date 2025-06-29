@@ -193,8 +193,6 @@ envsetup_apps_macos_app_open:
   - "Google Chrome"
   - "iTerm"
 
-composer_cache_directory: ~/.ansible-downloads/composer_cache
-
 # name: env-setup.04-packages ##################################################
 
 # cargo packages to install
