@@ -16,5 +16,5 @@
 
     - name: Marking env-setup playbook completion
       shell:  echo "{{ ansible_date_time.iso8601 }}" > .init
-        
+
   post_tasks: []
