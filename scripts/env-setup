@@ -228,7 +228,7 @@ while getopts 'AbcCheistuv' FLAG; do
             ;;
 
         b)
-            ENVSETUP_BACKUP_CACHE=""
+            ENVSETUP_BACKUP_CACHE="1"
             ;;
 
         c) shift "$((OPTIND-1))"; config "${1:-""}"; exit 0 ;;
