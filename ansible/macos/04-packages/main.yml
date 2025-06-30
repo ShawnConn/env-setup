@@ -24,7 +24,7 @@
       community.general.composer:
         command: config
         global_command: true
-        arguments: allow-plugins.{{ item.name }} true 
+        arguments: allow-plugins.{{ item.name }} true
       loop: "{{ composer_plugins }}"
       ignore_errors: true
       tags: ["php"]
