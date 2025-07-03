@@ -1,9 +1,13 @@
 ---
-- name: Pre-cache Hombrew and other installs
+- name: Pre-cache backup Hombrew and other libraries
   hosts: all
 
   vars_files:
     - ../../../default.config.yml
+
+  vars:
+    envset_cache_max_download_wait: 60
+    envset_cache_retries_check: 30
 
   pre_tasks: []
 
@@ -13,65 +17,113 @@
     - name: Retrieve Homebrew cache dir
       set_fact:
         homebrew_cache: "{{ lookup('pipe', 'brew --cache') }}"
-      tags: ["cache"]
+      tags: ["homebrew"]
 
-  - name: Create RubyGems cache directory
-    ansible.builtin.file:
-      path: "{{ downloads }}/gem"
-      state: directory
-      mode: '0755'
-    tags: ["cache"]
-
-  - name: Create NPM cache directory
-    ansible.builtin.file:
-      path: "{{ downloads }}/npm"
-      state: directory
-      mode: '0755'
-    tags: ["cache"]
-
-  - name: Create Pip cache directory
-    ansible.builtin.file:
-      path: "{{ downloads }}/pip"
-      state: directory
-      mode: '0755'
-    tags: ["cache"]
-
-    - name: Cache Homebrew packages to {{ homebrew_cache }}
+    - name: Cache Homebrew formulae to {{ homebrew_cache }}
       command: brew fetch "{{ item }}"
       loop: "{{ envsetup_homebrew_installed_packages }}"
-      ignore_errors: yes
-      tags: ["cache"]
+      async: "{{ envset_cache_max_download_wait }}"
+      poll: 0
+      register: hb_brew_fetch_results
+      tags: ["homebrew"]
+
+    - name: Check Homebrew formulae downloads
+      async_status:
+        jid: "{{ item.ansible_job_id }}"
+      loop: "{{ hb_brew_fetch_results.results }}"
+      register: hb_brew_fetch_jobs
+      until: hb_brew_fetch_jobs.finished
+      retries: "{{ envset_cache_retries_check }}"
+      delay: 2
+      tags: ["homebrew"]
 
     - name: Cache Homebrew casks to {{ homebrew_cache }}
-      command: brew fetch --cask "{{ packages[item] }}"
+      command: brew fetch --cask "{{ item }}"
       loop: "{{ envsetup_homebrew_cask_apps }}"
-      ignore_errors: true
+      async: "{{ envset_cache_max_download_wait }}"
+      poll: 0
+      register: hb_brew_fetch_cask_results
+      tags: ["homebrew"]
+
+    - name: Check Homebrew casks downloads
+      async_status:
+        jid: "{{ item.ansible_job_id }}"
+      loop: "{{ hb_brew_fetch_cask_results.results }}"
+      register: hb_brew_fetch_cask_jobs
+      until: hb_brew_fetch_cask_jobs.finished
+      retries: "{{ envset_cache_retries_check }}"
+      delay: 2
+      tags: ["homebrew"]
+
+
+    - name: Generate Homebrew Dump
+      command: brew bundle dump --file=-
+      tags: ["hb_brewfile"]
+
+
+    - name: Require PHP packages
+      community.general.composer:
+        command: require
+        global_command: true
+        #arguments: "--no-install {{ item.name }}"
+        arguments: "--no-install {{ composer_packages | map(attribute='name') | join(' ') }}"
+      #loop: "{{ composer_packages }}"
+      tags: ["php"]
+
+    - name: Cache PHP packages
+      community.general.composer:
+        command: install
+        global_command: true
+        arguments: --download-only
+      tags: ["php"]
+
+    - name: Create RubyGems cache directory
+      ansible.builtin.file:
+        path: "{{ downloads }}/gem"
+        state: directory
+        mode: '0755'
       tags: ["cache"]
 
-  - name: Cache Ruby gems to {{ downloads }}/gem
-    ansible.builtin.command:
-      cmd: gem fetch "{{ item.name }}"
-      chdir: "{{ downloads }}/gem"
-    loop: "{{ gem_packages }}"
-    ignore_errors: yes
-    tags: ["cache", "ruby"]
+    - name: Create NPM cache directory
+      ansible.builtin.file:
+        path: "{{ downloads }}/npm"
+        state: directory
+        mode: '0755'
+      tags: ["cache"]
 
-  - name: Cache NPM packages to {{ downloads }}/npm
-    ansible.builtin.command:
-      cmd: npm pack "{{ item }}"
-      chdir: "{{ downloads }}/npm"
-    loop: "{{ npm_packages }}"
-    ignore_errors: yes
-    tags: ["cache", "npm"]
+    - name: Create Pip cache directory
+      ansible.builtin.file:
+        path: "{{ downloads }}/pip"
+        state: directory
+        mode: '0755'
+      tags: ["cache"]
 
-  - name: Cache Python pip packages to {{ downloads }}/pip
-    ansible.builtin.command:
-      cmd: pip download "{{ item.name | default(item) }}" -d "{{ downloads }}/pip"
-      chdir: "{{ downloads }}/pip"
-    loop: "{{ pip_packages }}"
-    ignore_errors: yes
-    tags: ["cache", "python"]
+    - name: Cache Ruby gems to {{ downloads }}/gem
+      ansible.builtin.command:
+        cmd: gem fetch "{{ item.name }}"
+        chdir: "{{ downloads }}/gem"
+      loop: "{{ gem_packages }}"
+      ignore_errors: yes
+      tags: ["cache", "ruby"]
+
+    - name: Cache NPM packages to {{ downloads }}/npm
+      ansible.builtin.command:
+        cmd: npm pack "{{ item }}"
+        chdir: "{{ downloads }}/npm"
+      loop: "{{ npm_packages }}"
+      ignore_errors: yes
+      tags: ["cache", "npm"]
+
+    - name: Cache Python pip packages to {{ downloads }}/pip
+      ansible.builtin.command:
+        cmd: pip download "{{ item.name | default(item) }}" -d "{{ downloads }}/pip"
+        chdir: "{{ downloads }}/pip"
+      loop: "{{ pip_packages }}"
+      ignore_errors: yes
+      tags: ["cache", "python"]
 
     # @TODO: Cache for RUST/PHP/GO/RUBY/NODE/PYTHON
+
+    # @TODO: Generate config.yml
 
   post_tasks: []
