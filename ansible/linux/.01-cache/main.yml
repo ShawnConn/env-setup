@@ -19,6 +19,16 @@
         homebrew_cache: "{{ lookup('pipe', 'brew --cache') }}"
       tags: ["homebrew"]
 
+    - name: Retrieve PHP Composer cache dir
+      set_fact:
+        composer_cache: "{{ lookup('pipe', 'composer global config cache-dir') }}"
+      tags: ["php"]
+
+    - name: Retrieve Ruby Gem cache dir
+      set_fact:
+        gem_cache: "{{ lookup('pipe', 'gem env gemdir') }}"
+      tags: ["ruby"]
+
     - name: Cache Homebrew formulae to {{ homebrew_cache }}
       command: brew fetch "{{ item }}"
       loop: "{{ envsetup_homebrew_installed_packages }}"
@@ -55,13 +65,13 @@
       delay: 2
       tags: ["homebrew"]
 
-
+    # @TODO: Move to a separate area
     - name: Generate Homebrew Dump
       command: brew bundle dump --file=-
       tags: ["hb_brewfile"]
+    # @TODO: Move to a separate area
 
-
-    - name: Require PHP packages
+    - name: Require PHP Composer packages to {{ composer_cache }}
       community.general.composer:
         command: require
         global_command: true
@@ -70,13 +80,51 @@
       #loop: "{{ composer_packages }}"
       tags: ["php"]
 
-    - name: Cache PHP packages
+    - name: Cache PHP Composer packages to {{ composer_cache }}
       community.general.composer:
         command: install
         global_command: true
         arguments: --download-only
       tags: ["php"]
+    
+    - name: Cache Ruby gems to {{ gem_cache }}
+      ansible.builtin.command:
+        cmd: gem fetch "{{ item.name }}"
+      loop: "{{ gem_packages }}"
+      ignore_errors: yes
+      tags: ["ruby"]
 
+    ##XXXXXX
+
+    - name: Create NPM cache directory
+      ansible.builtin.file:
+        path: "{{ downloads }}/npm"
+        state: directory
+        mode: '0755'
+      tags: ["cache"]
+
+    - name: Cache NPM packages to {{ downloads }}/npm
+      ansible.builtin.command:
+        cmd: npm pack "{{ item }}"
+        chdir: "{{ downloads }}/npm"
+      loop: "{{ npm_packages }}"
+      ignore_errors: yes
+      tags: ["cache", "npm"]
+
+    - name: Create Pip cache directory
+      ansible.builtin.file:
+        path: "{{ downloads }}/pip"
+        state: directory
+        mode: '0755'
+      tags: ["cache"]
+
+    - name: Cache Python pip packages to {{ downloads }}/pip
+      ansible.builtin.command:
+        cmd: pip download "{{ item.name | default(item) }}" -d "{{ downloads }}/pip"
+        chdir: "{{ downloads }}/pip"
+      loop: "{{ pip_packages }}"
+      ignore_errors: yes
+      tags: ["cache", "python"]
 
     # @TODO: Cache for RUST/PHP/GO/RUBY/NODE/PYTHON
 
