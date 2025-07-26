@@ -23,11 +23,18 @@
       set_fact:
         composer_cache: "{{ lookup('pipe', 'composer global config cache-dir') }}"
       tags: ["php"]
-
+    
     - name: Retrieve Ruby Gem cache dir
       set_fact:
-        gem_cache: "{{ lookup('pipe', 'gem env gemdir') }}"
+        gem_cache: "/Users/{{ ansible_user_id }/Library/Caches/gem"
+        #  gem_cache: "{{ looup('pipe', 'gem env gemdir') }}"
       tags: ["ruby"]
+
+    - name: Create Ruby Gem cache dir {{ gem_cache }}
+      ansible.builtin.file:
+        path: "{{ gem_cache }}"
+        state: directory
+        mode: '0755'
 
     - name: Cache Homebrew formulae to {{ homebrew_cache }}
       command: brew fetch "{{ item }}"
@@ -75,9 +82,7 @@
       community.general.composer:
         command: require
         global_command: true
-        #arguments: "--no-install {{ item.name }}"
         arguments: "--no-install {{ composer_packages | map(attribute='name') | join(' ') }}"
-      #loop: "{{ composer_packages }}"
       tags: ["php"]
 
     - name: Cache PHP Composer packages to {{ composer_cache }}
@@ -90,18 +95,31 @@
     - name: Cache Ruby gems to {{ gem_cache }}
       ansible.builtin.command:
         cmd: gem fetch "{{ item.name }}"
+      args:
+        chdir: "{{ gem_cache }}"
       loop: "{{ gem_packages }}"
       ignore_errors: yes
       tags: ["ruby"]
 
-    ##XXXXXX
+    # @TODO: Create packaged bundle 
+    # {{ gem_cache }}
+    # ```
+    # gem install --local redis-3.3.5.gem
+    # 1. cat << EOF > Gemfile
+    # source "https://rubygems.org"
+
+    # gem "zonefile"
+    # EOF
+    # ```
+    # 2. bundle package --no-install
+    # 3. bundle install --local
 
     - name: Create NPM cache directory
       ansible.builtin.file:
         path: "{{ downloads }}/npm"
         state: directory
         mode: '0755'
-      tags: ["cache"]
+      tags: ["node"]
 
     - name: Cache NPM packages to {{ downloads }}/npm
       ansible.builtin.command:
@@ -109,14 +127,17 @@
         chdir: "{{ downloads }}/npm"
       loop: "{{ npm_packages }}"
       ignore_errors: yes
-      tags: ["cache", "npm"]
+      tags: ["node"]
+    
+    #npm install --offline
+    #https://g.co/gemini/share/6ba9c7285852
 
     - name: Create Pip cache directory
       ansible.builtin.file:
         path: "{{ downloads }}/pip"
         state: directory
         mode: '0755'
-      tags: ["cache"]
+      tags: ["python"]
 
     - name: Cache Python pip packages to {{ downloads }}/pip
       ansible.builtin.command:
@@ -124,9 +145,9 @@
         chdir: "{{ downloads }}/pip"
       loop: "{{ pip_packages }}"
       ignore_errors: yes
-      tags: ["cache", "python"]
+      tags: ["python"]
 
-    # @TODO: Cache for RUST/PHP/GO/RUBY/NODE/PYTHON
+    # @TODO: Cache for RUST/GO/RUBY/NODE/PYTHON
 
     # @TODO: Generate config.yml
 
