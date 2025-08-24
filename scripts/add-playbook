@@ -78,19 +78,19 @@ if [[ -z "$PLAYBOOK_NAME" ]]; then
     exit 1
 else
     if [[ ! -d "$PLAYBOOK_DIR/linux/$PLAYBOOK_NAME/" ]]; then
-        mkdir "$PLAYBOOK_DIR/linux/$PLAYBOOK_NAME/"
+        mkdir -p "$PLAYBOOK_DIR/linux/$PLAYBOOK_NAME/"
         cp "$PLAYBOOK_DIR/.main.yml" "$PLAYBOOK_DIR/linux/$PLAYBOOK_NAME/main.yml"
-        ln -s ../.00-init/ansible.cfg "$PLAYBOOK_DIR/linux/$PLAYBOOK_NAME/ansible.cfg"
-        ln -s ../.00-init/inventory "$PLAYBOOK_DIR/linux/$PLAYBOOK_NAME/inventory"
-        ln -s ../.00-init/requirements.yml "$PLAYBOOK_DIR/linux/$PLAYBOOK_NAME/requirements.yml"
+        ln -sf ../.00-init/ansible.cfg "$PLAYBOOK_DIR/linux/$PLAYBOOK_NAME/ansible.cfg"
+        ln -sf ../.00-init/inventory "$PLAYBOOK_DIR/linux/$PLAYBOOK_NAME/inventory"
+        ln -sf ../.00-init/requirements.yml "$PLAYBOOK_DIR/linux/$PLAYBOOK_NAME/requirements.yml"
     fi
 
     if [[ ! -d "$PLAYBOOK_DIR/macos/$PLAYBOOK_NAME/" ]]; then
-        mkdir "$PLAYBOOK_DIR/macos/$PLAYBOOK_NAME/"
+        mkdir -p "$PLAYBOOK_DIR/macos/$PLAYBOOK_NAME/"
         cp "$PLAYBOOK_DIR/.main.yml" "$PLAYBOOK_DIR/macos/$PLAYBOOK_NAME/main.yml"
-        ln -s ../.00-init/ansible.cfg "$PLAYBOOK_DIR/macos/$PLAYBOOK_NAME/ansible.cfg"
-        ln -s ../.00-init/inventory "$PLAYBOOK_DIR/macos/$PLAYBOOK_NAME/inventory"
-        ln -s ../.00-init/requirements.yml "$PLAYBOOK_DIR/macos/$PLAYBOOK_NAME/requirements.yml"
+        ln -sf ../.00-init/ansible.cfg "$PLAYBOOK_DIR/macos/$PLAYBOOK_NAME/ansible.cfg"
+        ln -sf ../.00-init/inventory "$PLAYBOOK_DIR/macos/$PLAYBOOK_NAME/inventory"
+        ln -sf ../.00-init/requirements.yml "$PLAYBOOK_DIR/macos/$PLAYBOOK_NAME/requirements.yml"
     fi
 
     echo -e "${C_SUC}$PLAYBOOK_NAME playbook started.${C_RES}\n"

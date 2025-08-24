@@ -5,7 +5,7 @@ using _Apple Silicon_.
 ## test scripts
 The `scripts` directory has a few scripts to test the running VM:
 
-- [scripts/create-tart-vms](scripts/create-tart-vms): create a 20GB ubuntu & 60GB macos VM.
+- [scripts/create](scripts/create): create a 20GB ubuntu & 60GB macos VM.
 - [scripts/env-setup](scripts/env-setup): test the [env-setup script](../scripts/env-setup).
 - [scripts/init](scripts/init): test the [init script](../scripts/init).
 - [scripts/scp](scripts/ssh): scp file/dir into the VM.
@@ -17,7 +17,7 @@ The `scripts` directory has a few scripts to test the running VM:
 See the [Tart quickstart guide](https://tart.run/quick-start/#vm-images) for how to start up a linux VM.
 ```
 # Create a 20GB ubuntu & 60GB macos VMs:
-./scripts/create-tart-vms 
+./scripts/create
 
 # Start VM
 ./scripts/start ubuntu
@@ -46,7 +46,7 @@ See the [Tart quickstart guide](https://tart.run/quick-start/#vm-images) for how
 
 ```
 # Create a 20GB ubuntu & 60GB macos VMs:
-./scripts/create-tart-vms 
+./scripts/create
 
 # Start VM
 ./scripts/start sonoma-vanilla

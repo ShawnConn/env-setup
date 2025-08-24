@@ -127,13 +127,13 @@ fi
 if [[ $SUGGEST_GIT == "1" ]]; then
     echo -e "${C_HIL}Installing Git...${C_RES}"
     case "$ENVSETUP_OS" in
-        "darwin"* )
+        darwin*)
                 echo -e "Install Git via XCode CLI Tool (accept on GUI and hit enter after installation)...\n"
                 xcode-select --install
                 read -r -p "" ANSWER
                 echo -e "\n"
             ;;
-        "linux"* )
+        linux*)
                 if [ -x "$(command -v apk)" ]; then
                     sudo apk add git
                 elif [ -x "$(command -v apt-get)" ]; then
@@ -147,7 +147,7 @@ if [[ $SUGGEST_GIT == "1" ]]; then
                     exit 1
                 fi
             ;;
-        * )
+        *)
                 echo -e "${C_WAR}Unsupported OS${C_RES}\n"
                 exit 1
             ;;
