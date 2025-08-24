@@ -311,7 +311,7 @@ if [[ $SUGGEST_ANSIBLE == "1" ]]; then
 fi
 
 case "$ENVSETUP_OS" in
-    "darwin"* )
+    darwin*)
         if [[ $SUGGEST_ANSIBLE == "1" ]]; then
             "$SCRIPTS_DIR/macos/install-ansible"
         fi
@@ -319,13 +319,13 @@ case "$ENVSETUP_OS" in
             && pwd)/$(basename "${BASH_SOURCE[0]}")"
         PLAYBOOKS="$(dirname "$(dirname "$ABSOLUTE_PATH")")/ansible/macos"
         ;;
-    "linux"* )
+    linux*)
         if [[ $SUGGEST_ANSIBLE == "1" ]]; then
             "$SCRIPTS_DIR/linux/install-ansible"
         fi
         PLAYBOOKS="$(dirname "$(realpath "$SCRIPTS_DIR")")/ansible/linux"
         ;;
-    * )
+    *)
         echo -e "${C_WAR}Unsupported OS${C_RES}\n"
         exit 1
         ;;
