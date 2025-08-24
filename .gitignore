@@ -1,2 +1,11 @@
+# ignore user config
 config.yml
+
+# ignore txt in scripts dir
 scripts/*.txt
+
+# gemini-cli settings
+.gemini/
+
+# GitHub App credentials
+gha-creds-*.json
