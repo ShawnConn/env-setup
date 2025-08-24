@@ -21,13 +21,13 @@ fi
 
 if [[ ! -x "$(command -v tart)" ]]; then
     echo -e "\n${C_ERR}tart is required!${C_RES}"
-    echo -e "\nrun ${C_WARN}brew install cirruslabs/cli/tart${C_RES}"
+    echo -e "\nrun ${C_WAR}brew install cirruslabs/cli/tart${C_RES}"
     exit 1
 fi
 
 if [[ ! -x "$(command -v sshpass)" ]]; then
     echo -e "\n${C_ERR}sshpass is required!${C_RES}"
-    echo -e "\nrun ${C_WARN}brew install cirruslabs/cli/sshpass${C_RES}"
+    echo -e "\nrun ${C_WAR}brew install cirruslabs/cli/sshpass${C_RES}"
     exit 1
 fi
 
