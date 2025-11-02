@@ -68,6 +68,32 @@ config() {
     fi
 }
 
+# xport env-setup
+xport() {
+    echo "HI"
+
+    #echo "homebrew_taps:" > /dev/stdout
+    #echo "$INSTALLED_TAPS" | sed 's/^/  - /' >>  /dev/stdout
+
+    #echo "envsetup_homebrew_installed_packages:" > /dev/stdout
+    #echo "$INSTALLED_PACKAGES" | sed 's/^/  - /' >>  /dev/stdout
+
+    #echo "envsetup_homebrew_cask_apps:" > /dev/stdout
+    #echo "$INSTALLED_CASKS" | sed 's/^/  - /' >>  /dev/stdout
+
+    #INSTALLED_TAPS=$(brew tap)
+    #TAPS="$(jq -c -Rs '[split("\n") | .[] | select(length > 0)]' <<< "$INSTALLED_TAPS")"
+    #yq -i ".homebrew_taps = ${TAPS}" a.yml
+
+    #INSTALLED_PACKAGES=$(brew list --formulae | grep -v '^\s*$')
+    #PACKAGES="$(jq -c -Rs '[split("\n") | .[] | select(length > 0)]' <<< "$INSTALLED_PACKAGES")"
+    #yq -i ".envsetup_homebrew_installed_packages = ${PACKAGES}" a.yml
+
+    #INSTALLED_CASKS=$(brew list --casks | grep -v '^\s*$')
+    #CASKS="$(jq -c -Rs '[split("\n") | .[] | select(length > 0)]' <<< "$INSTALLED_CASKS")"
+    #yq -i ".envsetup_homebrew_cask_apps = ${CASKS}" a.yml
+}
+
 # Update env-setup
 update() {
     cd "$INSTALL_DIR"
@@ -184,6 +210,8 @@ run_playbook() {
 #/      Run "01-config" playbook with only the pub_dotfiles tasks
 #/   $SCRIPT -v 03-apps
 #/      Run "03-apps" playbook in verbose mode.
+#/   $SCRIPT -x
+#/      Export current setup to config.yml
 #/   $SCRIPT 04-my-playbook
 #/      Have $SCRIPT run the "04-my-playbook" playbook.
 #/
@@ -209,7 +237,7 @@ expr "$*" : ".*--help" > /dev/null && usage
 
 # Handle options
 # Add options x: - required arg
-while getopts 'AcCheistuv' FLAG; do
+while getopts 'AcCheistuvx' FLAG; do
     # shellcheck disable=SC2317
     case "${FLAG}" in
 
@@ -265,6 +293,9 @@ while getopts 'AcCheistuv' FLAG; do
             ANSIBLE_STDOUT_CALLBACK="debug"
             shift "$((OPTIND-1))"
             ;;
+
+        x) xport; exit 0 ;;
+
         *) : ;;
     esac
 done
