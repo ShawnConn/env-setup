@@ -90,15 +90,15 @@ xport() {
 
     #INSTALLED_TAPS=$(brew tap)
     #TAPS="$(jq -c -Rs '[split("\n") | .[] | select(length > 0)]' <<< "$INSTALLED_TAPS")"
-    #yq -i ".homebrew_taps = ${TAPS}" a.yml
+    #yq -i ".homebrew_taps = ${TAPS}" export-env-setup.yml
 
     #INSTALLED_PACKAGES=$(brew list --formulae | grep -v '^\s*$')
     #PACKAGES="$(jq -c -Rs '[split("\n") | .[] | select(length > 0)]' <<< "$INSTALLED_PACKAGES")"
-    #yq -i ".envsetup_homebrew_installed_packages = ${PACKAGES}" a.yml
+    #yq -i ".envsetup_homebrew_installed_packages = ${PACKAGES}" export-env-setup.yml
 
     #INSTALLED_CASKS=$(brew list --casks | grep -v '^\s*$')
     #CASKS="$(jq -c -Rs '[split("\n") | .[] | select(length > 0)]' <<< "$INSTALLED_CASKS")"
-    #yq -i ".envsetup_homebrew_cask_apps = ${CASKS}" a.yml
+    #yq -i ".envsetup_homebrew_cask_apps = ${CASKS}" export-env-setup.yml
 
 
     # @TODO: Push Saved Exported

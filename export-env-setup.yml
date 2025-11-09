@@ -1,0 +1,157 @@
+# name: env-setup.01-config ####################################################
+
+pub_dotfiles_repo: git@github.com:ShawnConn/dotfiles.git
+pub_dotfiles_repo_accept_hostkey: yes
+pub_dotfiles_repo_local_destination: ~/env-setup-dotfiles
+pub_dotfiles_repo_version: main
+pub_dotfiles_files:
+  - .bash_profile
+pub_dotfiles_subdirs: 
+  - ~/.vim/colors/
+
+prv_dotfiles_repo: git@github.com:ShawnConn/dotfiles-prv.git
+prv_dotfiles_repo_accept_hostkey: yes
+prv_dotfiles_repo_local_destination: ~/env-setup-prv-dotfiles
+prv_dotfiles_repo_version: main
+prv_dotfiles_files:
+  - .app
+prv_dotfiles_subdirs: []
+
+# name: env-setup.02-cli #################################################
+homebrew_taps:
+  - ankitpokhrel/jira-cli
+envsetup_homebrew_installed_packages:
+  - act
+
+# name: env-setup.03-apps ######################################################
+envsetup_homebrew_cask_apps:
+  - authy
+
+mas_installed_apps:
+  - { id: 824183456, name: "Affinity Photo" }
+mas_uninstalled_apps:
+  - { id: 408981434, name: "iMovie" }
+mas_email: ""
+mas_password: ""
+
+configure_dock: true
+
+dockitems_persist:
+  - name: "FaceTime"
+    path: "/System/Applications/FaceTime.app"
+    pos: 1
+
+dockitems_remove:
+  - Launchpad
+
+envsetup_apps_macos_settings:
+  - {description: "iTerm2: Load custom settings from a folder/URL", domain: "com.googlecode.iterm2", key: "LoadPrefsFromCustomFolder", type: "bool", value: true}
+envsetup_apps_macos_app_open:
+  - "1Password"
+
+# name: env-setup.04-packages ##################################################
+
+cargo_packages:
+  - name: bore-cli
+
+composer_plugins:
+  - name: composer/installers
+
+composer_packages:
+  - name: drupal/coder
+
+go_packages:
+  - name: github.com/b-b3rn4rd/awscli-console-plugin@latest
+
+gem_packages:
+  - name: ghi
+
+npm_packages:
+  - name: '@angular/cli'
+
+pip_packages:
+  - name: ansible-lint
+
+# name: env-setup.05-repos #####################################################
+
+git_repo_project_dir: ~/env-setup-git-repos
+git_repo_projects:
+  # Luciditi
+  - name: env-setup
+    url: git@github.com:ShawnConn/env-setup.git
+    upstream: git@github.com:Luciditi/env-setup.git
+    symlink: ~/projects/luciditi/devops/env-setup
+
+git_repo_vendors_dir: ~/env-setup-vendors
+git_repo_vendors:
+  - name: luciditi
+    host: git@github.com
+    projects:
+      - name: env-setup-dotfiles
+        depth: 1
+
+# name: env-setup.06-os ########################################################
+
+envsetup_os_hostname: M1
+
+envsetup_os_avatar_url: "https://avatars.githubusercontent.com/u/1087111"
+
+envsetup_os_macos_config_script: "{{ pub_dotfiles_repo_local_destination }}/.macos"
+
+envsetup_os_macos_settings: 
+  - {description: "Play feedback when volume is changed", domain: "NSGlobalDomain", key: "com.apple.sound.beep.feedback", type: "int", value: 1}
+envsetup_os_macos_sudo_settings:
+- description: "Set login message"
+  domain: "/Library/Preferences/com.apple.loginwindow"
+  key: "LoginwindowText"
+  type: "string"
+  value: |
+    812-624-5224
+    shawn@jig.io
+
+envsetup_os_linux_settings: []
+
+# name: env-setup.07-cloud #####################################################
+
+envsetup_cloud_app: "/Applications/Google Drive.app"
+
+envsetup_cloud_dir: "/Users/{{ ansible_user_id }}/Google Drive"
+
+envsetup_cloud_backup_dir: "Work/Config/{{ ansible_hostname }}/MacPrefs"
+
+envsetup_cloud_sync_script: "export MACPREFS_BACKUP_DIR=$CLOUD_SYNC_DIR && macprefs backup"
+
+envsetup_cloud_project_root: "Work/Projects"
+envsetup_cloud_project_list: 
+ - Luciditi
+envsetup_cloud_project_dirs:
+  - config
+envsetup_cloud_project_symlink: "/Users/{{ ansible_user_id }}/Documents"
+
+# name: env-setup.08-prefs #####################################################
+
+envsetup_prefs_macos_other_dockitems_persist:
+  - name: Applications
+    path: "/Applications"
+    view: list
+    display: stack
+    pos: 1
+
+envsetup_prefs_macos_other_dockitems_remove: []
+
+envsetup_prefs_macos_file_extension_handlers:
+  - { extension: avi, handler: com.microsoft.VSCode }
+
+envsetup_prefs_macos_login_items:
+  - {name: "Caffeine", hidden: true}
+
+envsetup_prefs_macos_settings:
+  - {description: "BitBar: Plugin Dir", domain: "com.matryer.BitBar", key: "pluginsDirectory", type: "string", value: "\"/Users/{{ ansible_user_id }}/.bitbar\""}
+envsetup_prefs_macos_sudo_settings: []
+
+envsetup_prefs_macos_app_open:
+  - "BitBar"
+
+envsetup_prefs_visual_studio_code_extensions: 
+  - 1password.op-vscode
+envsetup_prefs_visual_studio_code_extensions_absent: []
