@@ -72,6 +72,8 @@ config() {
 xport() {
     echo "HI"
 
+    # @TODO: Check jq
+    # @TODO: Check xargs
     # @TODO: Check yq
     # yq --version | grep -oE '([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?'
 
@@ -92,6 +94,10 @@ xport() {
     #TAPS="$(jq -c -Rs '[split("\n") | .[] | select(length > 0)]' <<< "$INSTALLED_TAPS")"
     #yq -i ".homebrew_taps = ${TAPS}" export-env-setup.yml
 
+    #INSTALLED_CRATES=$(cargo install --list  | awk '{print $1}' | uniq )
+    #CRATES="$(echo "$INSTALLED_CRATES" | xargs -I {} echo '{"name": "{}"}' | jq -cs '.')"
+    #yq -i ".cargo_packages = ${CRATES}" export-env-setup.yml
+
     #INSTALLED_PACKAGES=$(brew list --formulae | grep -v '^\s*$')
     #PACKAGES="$(jq -c -Rs '[split("\n") | .[] | select(length > 0)]' <<< "$INSTALLED_PACKAGES")"
     #yq -i ".envsetup_homebrew_installed_packages = ${PACKAGES}" export-env-setup.yml
@@ -100,6 +106,9 @@ xport() {
     #CASKS="$(jq -c -Rs '[split("\n") | .[] | select(length > 0)]' <<< "$INSTALLED_CASKS")"
     #yq -i ".envsetup_homebrew_cask_apps = ${CASKS}" export-env-setup.yml
 
+    #XXX=$(cargo install --list  | awk '{print $1}' | uniq)
+    #YYY="$(jq -c -Rs '[split("\n") | .[] | select(length > 0)]' <<< "$XXX")"
+    #yq -i ".zzz = ${YYY}" export-env-setup.yml
 
     # @TODO: Push Saved Exported
 }
