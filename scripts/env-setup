@@ -72,9 +72,16 @@ config() {
 xport() {
     echo "HI"
 
+    # @TODO: Check yq
+    # yq --version | grep -oE '([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?'
+
+    # @TODO: Backup config
     #echo "homebrew_taps:" > /dev/stdout
     #echo "$INSTALLED_TAPS" | sed 's/^/  - /' >>  /dev/stdout
 
+    # @TODO: Check Args for Playbook
+
+    # @TODO: Run Export
     #echo "envsetup_homebrew_installed_packages:" > /dev/stdout
     #echo "$INSTALLED_PACKAGES" | sed 's/^/  - /' >>  /dev/stdout
 
@@ -92,6 +99,9 @@ xport() {
     #INSTALLED_CASKS=$(brew list --casks | grep -v '^\s*$')
     #CASKS="$(jq -c -Rs '[split("\n") | .[] | select(length > 0)]' <<< "$INSTALLED_CASKS")"
     #yq -i ".envsetup_homebrew_cask_apps = ${CASKS}" a.yml
+
+
+    # @TODO: Push Saved Exported
 }
 
 # Update env-setup
