@@ -70,11 +70,23 @@ config() {
 
 # xport env-setup
 xport() {
-    echo "HI"
+    REQUIRED_CMDS=(jq yq)
+    MISSING=()
+    for _cmd in "${REQUIRED_CMDS[@]}"; do
+        if ! command -v "$_cmd" >/dev/null 2>&1; then
+            MISSING+=("$_cmd")
+        fi
+    done
 
-    # @TODO: Check jq
-    # @TODO: Check xargs
-    # @TODO: Check yq
+    if [[ ${#MISSING[@]} -gt 0 ]]; then
+        echo -e "${C_ERR}Missing required tools:${C_RES} ${C_WAR}$(printf '%s ' "${MISSING[@]}")${C_RES}"
+        if [[ "${ENVSETUP_OS:-}" =~ darwin* ]]; then
+            echo -e "Install with: brew install ${MISSING[*]}"
+        else
+            echo -e "Install with your distro package manager (apt/yum/pacman) or use pip/snap for yq."
+        fi
+        exit 1
+    fi
     # yq --version | grep -oE '([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?'
 
     # @TODO: Backup config
@@ -106,9 +118,25 @@ xport() {
     #CASKS="$(jq -c -Rs '[split("\n") | .[] | select(length > 0)]' <<< "$INSTALLED_CASKS")"
     #yq -i ".envsetup_homebrew_cask_apps = ${CASKS}" export-env-setup.yml
 
+    #INSTALLED_NPM_PACKAGES=$(npm list -g --depth=0 --parseable --silent 2>/dev/null | xargs -I {} basename {})
+    #NPM_PACKAGES="$(echo "$INSTALLED_NPM_PACKAGES" | xargs -I {} echo '{"name": "{}"}' | jq -cs '.')"
+    #yq -i ".npm_packages = ${NPM_PACKAGES}" export-env-setup.yml
+
+    #INSTALLED_GOBINS="$(for bin in $(go env GOPATH)/bin/*; do printf "%s\n" "$(go version -m $bin | awk '$1 == "path" {print $2}' | sed 's/$/@latest/')"; done)"
+    #GOBINS="$(echo "$INSTALLED_GOBINS" | xargs -I {} echo '{"name": "{}"}' | jq -cs '.')"
+    #yq -i ".go_packages = ${GOBINS}" export-env-setup.yml
+    
     #XXX=$(cargo install --list  | awk '{print $1}' | uniq)
     #YYY="$(jq -c -Rs '[split("\n") | .[] | select(length > 0)]' <<< "$XXX")"
     #yq -i ".zzz = ${YYY}" export-env-setup.yml
+
+    #XXX=$(cargo install --list  | awk '{print $1}' | uniq)
+    #YYY="$(jq -c -Rs '[split("\n") | .[] | select(length > 0)]' <<< "$XXX")"
+    #yq -i ".zzz = ${YYY}" export-env-setup.yml
+
+    ## Convert to YAML array format using yq
+    #echo "$INSTALLED_NPM_PACKAGES" | yq eval-all '. as $item ireduce ({}; . * $item) | to_entries | map(.value) | {"npm_packages": .}' -
+
 
     # @TODO: Push Saved Exported
 }
