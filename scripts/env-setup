@@ -96,31 +96,44 @@ xport() {
     # @TODO: Check Args for Playbook
 
     # @TODO: Run Export
-    #echo "envsetup_homebrew_installed_packages:" > /dev/stdout
-    #echo "$INSTALLED_PACKAGES" | sed 's/^/  - /' >>  /dev/stdout
+    # 01:CONFIG
 
-    #echo "envsetup_homebrew_cask_apps:" > /dev/stdout
-    #echo "$INSTALLED_CASKS" | sed 's/^/  - /' >>  /dev/stdout
-
+    # 02:CLIS
     #INSTALLED_TAPS=$(brew tap)
     #TAPS="$(jq -c -Rs '[split("\n") | .[] | select(length > 0)]' <<< "$INSTALLED_TAPS")"
     #yq -i ".homebrew_taps = ${TAPS}" export-env-setup.yml
-
-    #INSTALLED_CRATES=$(cargo install --list  | awk '{print $1}' | uniq )
-    #CRATES="$(echo "$INSTALLED_CRATES" | xargs -I {} echo '{"name": "{}"}' | jq -cs '.')"
-    #yq -i ".cargo_packages = ${CRATES}" export-env-setup.yml
 
     #INSTALLED_PACKAGES=$(brew list --formulae | grep -v '^\s*$')
     #PACKAGES="$(jq -c -Rs '[split("\n") | .[] | select(length > 0)]' <<< "$INSTALLED_PACKAGES")"
     #yq -i ".envsetup_homebrew_installed_packages = ${PACKAGES}" export-env-setup.yml
 
+    #echo "envsetup_homebrew_installed_packages:" > /dev/stdout
+    #echo "$INSTALLED_PACKAGES" | sed 's/^/  - /' >>  /dev/stdout
+
+    # 03:APPS
+
     #INSTALLED_CASKS=$(brew list --casks | grep -v '^\s*$')
     #CASKS="$(jq -c -Rs '[split("\n") | .[] | select(length > 0)]' <<< "$INSTALLED_CASKS")"
     #yq -i ".envsetup_homebrew_cask_apps = ${CASKS}" export-env-setup.yml
 
-    #INSTALLED_NPM_PACKAGES=$(npm list -g --depth=0 --parseable --silent 2>/dev/null | xargs -I {} basename {})
-    #NPM_PACKAGES="$(echo "$INSTALLED_NPM_PACKAGES" | xargs -I {} echo '{"name": "{}"}' | jq -cs '.')"
-    #yq -i ".npm_packages = ${NPM_PACKAGES}" export-env-setup.yml
+    #echo "envsetup_homebrew_cask_apps:" > /dev/stdout
+    #echo "$INSTALLED_CASKS" | sed 's/^/  - /' >>  /dev/stdout
+
+    #brew bundle dump --file=- | sed -n '/^mas/p'
+
+    # 04:PACKAGES
+
+    #INSTALLED_CRATES=$(cargo install --list  | awk '{print $1}' | uniq )
+    #CRATES="$(echo "$INSTALLED_CRATES" | xargs -I {} echo '{"name": "{}"}' | jq -cs '.')"
+    #yq -i ".cargo_packages = ${CRATES}" export-env-setup.yml
+
+    #INSTALLED_COMPOSER_PLUGINS=$(jq -r '.config."allow-plugins" | keys[]' "$(composer global config home 2> /dev/null)/composer.json")
+    #PLUGINS="$(jq -R '{name: .}' <<< "$INSTALLED_COMPOSER_PLUGINS" | jq -sc)"
+    #yq -i ".composer_packages = ${PLUGINS}" export-env-setup.yml
+
+    #INSTALLED_COMPOSER_PACKAGES=$(jq -r '.require | keys[]' "$(composer global config home 2> /dev/null)/composer.json")
+    #PACKAGES="$(jq -R '{name: .}' <<< "$INSTALLED_COMPOSER_PACKAGES" | jq -sc)"
+    #yq -i ".composer_packages = ${PACKAGES}" export-env-setup.yml
 
     #INSTALLED_GOBINS="$(for bin in $(go env GOPATH)/bin/*; do printf "%s\n" "$(go version -m $bin | awk '$1 == "path" {print $2}' | sed 's/$/@latest/')"; done)"
     #GOBINS="$(echo "$INSTALLED_GOBINS" | xargs -I {} echo '{"name": "{}"}' | jq -cs '.')"
@@ -130,25 +143,23 @@ xport() {
     #GEMS="$(jq -R '{name: .}' <<< "$INSTALLED_GEMS" | jq -sc)"
     #yq -i ".gem_packages = ${GEMS}" export-env-setup.yml
 
+    #INSTALLED_NPM_PACKAGES=$(npm list -g --depth=0 --parseable --silent 2>/dev/null | xargs -I {} basename {})
+    #NPM_PACKAGES="$(echo "$INSTALLED_NPM_PACKAGES" | xargs -I {} echo '{"name": "{}"}' | jq -cs '.')"
+    #yq -i ".npm_packages = ${NPM_PACKAGES}" export-env-setup.yml
+    ## Convert to YAML array format using yq
+    #echo "$INSTALLED_NPM_PACKAGES" | yq eval-all '. as $item ireduce ({}; . * $item) | to_entries | map(.value) | {"npm_packages": .}' -
+
     #INSTALLED_PIPS=$(pipx list --short | sed 's/ .*//')
     #PIPS="$(jq -R '{name: .}' <<< "$INSTALLED_PIPS" | jq -sc)"
     #yq -i ".pip_packages = ${PIPS}" export-env-setup.yml
 
-    #INSTALLED_COMPOSER_PACKAGES=$(jq -r '.require | keys[]' "$(composer global config home 2> /dev/null)/composer.json")
-    #PACKAGES="$(jq -R '{name: .}' <<< "$INSTALLED_COMPOSER_PACKAGES" | jq -sc)"
-    #yq -i ".composer_packages = ${PACKAGES}" export-env-setup.yml
+    # 05:REPOS
 
-    #INSTALLED_COMPOSER_PLUGINS=$(jq -r '.config."allow-plugins" | keys[]' "$(composer global config home 2> /dev/null)/composer.json")
-    #PLUGINS="$(jq -R '{name: .}' <<< "$INSTALLED_COMPOSER_PLUGINS" | jq -sc)"
-    #yq -i ".composer_packages = ${PLUGINS}" export-env-setup.yml
+    # 06:OS
 
-    #XXX=$(pipx list --short | sed 's/ .*//')
-    #YYY="$(jq -R '{name: .}' <<< "$XXX" | jq -sc)"
-    #yq -i ".zzz = ${YYY}" export-env-setup.yml
+    # 07:CLOUD
 
-    ## Convert to YAML array format using yq
-    #echo "$INSTALLED_NPM_PACKAGES" | yq eval-all '. as $item ireduce ({}; . * $item) | to_entries | map(.value) | {"npm_packages": .}' -
-
+    # 08:PREFS
 
     # @TODO: Push Saved Exported
 }
