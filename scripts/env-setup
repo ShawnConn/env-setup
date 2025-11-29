@@ -134,6 +134,14 @@ xport() {
     #PIPS="$(jq -R '{name: .}' <<< "$INSTALLED_PIPS" | jq -sc)"
     #yq -i ".pip_packages = ${PIPS}" export-env-setup.yml
 
+    #INSTALLED_COMPOSER_PACKAGES=$(jq -r '.require | keys[]' "$(composer global config home 2> /dev/null)/composer.json")
+    #PACKAGES="$(jq -R '{name: .}' <<< "$INSTALLED_COMPOSER_PACKAGES" | jq -sc)"
+    #yq -i ".composer_packages = ${PACKAGES}" export-env-setup.yml
+
+    #INSTALLED_COMPOSER_PLUGINS=$(jq -r '.config."allow-plugins" | keys[]' "$(composer global config home 2> /dev/null)/composer.json")
+    #PLUGINS="$(jq -R '{name: .}' <<< "$INSTALLED_COMPOSER_PLUGINS" | jq -sc)"
+    #yq -i ".composer_packages = ${PLUGINS}" export-env-setup.yml
+
     #XXX=$(pipx list --short | sed 's/ .*//')
     #YYY="$(jq -R '{name: .}' <<< "$XXX" | jq -sc)"
     #yq -i ".zzz = ${YYY}" export-env-setup.yml
