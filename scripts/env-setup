@@ -125,10 +125,10 @@ xport() {
     #INSTALLED_GOBINS="$(for bin in $(go env GOPATH)/bin/*; do printf "%s\n" "$(go version -m $bin | awk '$1 == "path" {print $2}' | sed 's/$/@latest/')"; done)"
     #GOBINS="$(echo "$INSTALLED_GOBINS" | xargs -I {} echo '{"name": "{}"}' | jq -cs '.')"
     #yq -i ".go_packages = ${GOBINS}" export-env-setup.yml
-    
-    #XXX=$(cargo install --list  | awk '{print $1}' | uniq)
-    #YYY="$(jq -c -Rs '[split("\n") | .[] | select(length > 0)]' <<< "$XXX")"
-    #yq -i ".zzz = ${YYY}" export-env-setup.yml
+
+    #INSTALLED_GEMS=$(gem list | sed 's/ (.*//')
+    #GEMS="$(jq -R '{name: .}' <<< "$INSTALLED_GEMS" | jq -sc)"
+    #yq -i ".gem_packages = ${GEMS}" export-env-setup.yml
 
     #XXX=$(cargo install --list  | awk '{print $1}' | uniq)
     #YYY="$(jq -c -Rs '[split("\n") | .[] | select(length > 0)]' <<< "$XXX")"
