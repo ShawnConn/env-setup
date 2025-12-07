@@ -13,6 +13,7 @@ set -euo pipefail
 ############################################################################
 
 # Config env-setup
+# $1: The config setup to use for env-setup (see $OPTIONS)
 config() {
     ENVSETUP_CONFIG_MSG="Select an env-setup config (enter q to quit):"
     CONFIG=${1:-""}
@@ -68,7 +69,8 @@ config() {
     fi
 }
 
-# xport env-setup
+# Export env-setup
+# $1: The playbook to export config for (default: "all")
 xport() {
     REQUIRED_CMDS=(jq yq)
     MISSING=()
@@ -79,11 +81,15 @@ xport() {
     done
 
     if [[ ${#MISSING[@]} -gt 0 ]]; then
-        echo -e "${C_ERR}Missing required tools:${C_RES} ${C_WAR}$(printf '%s ' "${MISSING[@]}")${C_RES}"
+        echo -e "${C_ERR}Missing required tools:${C_RES} " \
+            "${C_WAR}$(printf '%s ' "${MISSING[@]}")${C_RES}"
         if [[ "${ENVSETUP_OS:-}" =~ darwin* ]]; then
             echo -e "Install with: brew install ${MISSING[*]}"
+            echo -e "Install with your distro package manager" \
+            "(apt/yum/pacman) or use pip/snap for yq."
         else
-            echo -e "Install with your distro package manager (apt/yum/pacman) or use pip/snap for yq."
+            echo -e "Install with your distro package manager" \
+            "(apt/yum/pacman) or use pip/snap for yq."
         fi
         exit 1
     fi
@@ -91,85 +97,127 @@ xport() {
 
     # @TODO: Backup config
 
-    # @TODO: Check Args for Playbook
-
     # @TODO: Run Export
-    # 01:CONFIG
-    # Check Config
-    # Review symlinks
-    # find . -maxdepth 3 -type l -print
-    # find . -maxdepth 3 -type l -print -exec readlink {} \;
+    # Check arg for playbook
+    PLAYBOOK=${1:-"all"}
+    echo -e "${C_SUC}Exporting playbook config: ${C_WAR}$PLAYBOOK${C_RES}\n"
+    case "$PLAYBOOK" in
+        01-config)
+            echo -e "${C_HIL}Exporting 01-config...${C_RES}"
 
-    # 02:CLIS
-    #INSTALLED_TAPS=$(brew tap)
-    #TAPS="$(jq -c -Rs '[split("\n") | .[] | select(length > 0)]' <<< "$INSTALLED_TAPS")"
-    #yq -i ".homebrew_taps = ${TAPS}" export-env-setup.yml
+            # 01:CONFIG
+            # Check Config
+            # Review symlinks
+            # find . -maxdepth 3 -type l -print
+            # find . -maxdepth 3 -type l -print -exec readlink {} \;
 
-    #echo "homebrew_taps:" > /dev/stdout
-    #echo "$INSTALLED_TAPS" | sed 's/^/  - /' >>  /dev/stdout
+            ;;
+        02-cli)
+            echo -e "${C_HIL}Exporting 02-cli...${C_RES}"
+            # CLI export logic here
 
-    #INSTALLED_PACKAGES=$(brew list --formulae | grep -v '^\s*$')
-    #PACKAGES="$(jq -c -Rs '[split("\n") | .[] | select(length > 0)]' <<< "$INSTALLED_PACKAGES")"
-    #yq -i ".envsetup_homebrew_installed_packages = ${PACKAGES}" export-env-setup.yml
+            #INSTALLED_TAPS=$(brew tap)
+            #TAPS="$(jq -c -Rs '[split("\n") | .[] | select(length > 0)]' <<< "$INSTALLED_TAPS")"
+            #yq -i ".homebrew_taps = ${TAPS}" export-env-setup.yml
 
-    #echo "envsetup_homebrew_installed_packages:" > /dev/stdout
-    #echo "$INSTALLED_PACKAGES" | sed 's/^/  - /' >>  /dev/stdout
+            #echo "homebrew_taps:" > /dev/stdout
+            #echo "$INSTALLED_TAPS" | sed 's/^/  - /' >>  /dev/stdout
 
-    # DOCK
-    # defaults read com.apple.dock persistent-apps | grep file-label | sed 's/.*file-label = "\(.*\)"\;/Name: /g'
-    # defaults read com.apple.dock persistent-apps | grep file-label | sed 's/.*file-label = "\(.*\)"\;/Name: /g' | awk '{print "Order: " NR, $0}'
+            #INSTALLED_PACKAGES=$(brew list --formulae | grep -v '^\s*$')
+            #PACKAGES="$(jq -c -Rs '[split("\n") | .[] | select(length > 0)]' <<< "$INSTALLED_PACKAGES")"
+            #yq -i ".envsetup_homebrew_installed_packages = ${PACKAGES}" export-env-setup.yml
 
-    # 03:APPS
+            #echo "envsetup_homebrew_installed_packages:" > /dev/stdout
+            #echo "$INSTALLED_PACKAGES" | sed 's/^/  - /' >>  /dev/stdout
 
-    #INSTALLED_CASKS=$(brew list --casks | grep -v '^\s*$')
-    #CASKS="$(jq -c -Rs '[split("\n") | .[] | select(length > 0)]' <<< "$INSTALLED_CASKS")"
-    #yq -i ".envsetup_homebrew_cask_apps = ${CASKS}" export-env-setup.yml
+            # DOCK
+            # defaults read com.apple.dock persistent-apps | grep file-label | sed 's/.*file-label = "\(.*\)"\;/Name: /g'
+            # defaults read com.apple.dock persistent-apps | grep file-label | sed 's/.*file-label = "\(.*\)"\;/Name: /g' | awk '{print "Order: " NR, $0}'
+            ;;
+        03-apps)
+            echo -e "${C_HIL}Exporting 03-apps...${C_RES}"
+            # Apps export logic here
 
-    #echo "envsetup_homebrew_cask_apps:" > /dev/stdout
-    #echo "$INSTALLED_CASKS" | sed 's/^/  - /' >>  /dev/stdout
+            #INSTALLED_CASKS=$(brew list --casks | grep -v '^\s*$')
+            #CASKS="$(jq -c -Rs '[split("\n") | .[] | select(length > 0)]' <<< "$INSTALLED_CASKS")"
+            #yq -i ".envsetup_homebrew_cask_apps = ${CASKS}" export-env-setup.yml
 
-    #brew bundle dump --file=- | sed -n '/^mas/p'
+            #echo "envsetup_homebrew_cask_apps:" > /dev/stdout
+            #echo "$INSTALLED_CASKS" | sed 's/^/  - /' >>  /dev/stdout
 
-    # 04:PACKAGES
+            #brew bundle dump --file=- | sed -n '/^mas/p'
+            ;;
+        04-packages)
+            echo -e "${C_HIL}Exporting 04-packages...${C_RES}"
+            # Packages export logic here
 
-    #INSTALLED_CRATES=$(cargo install --list  | awk '{print $1}' | uniq )
-    #CRATES="$(echo "$INSTALLED_CRATES" | xargs -I {} echo '{"name": "{}"}' | jq -cs '.')"
-    #yq -i ".cargo_packages = ${CRATES}" export-env-setup.yml
+            #INSTALLED_CRATES=$(cargo install --list  | awk '{print $1}' | uniq )
+            #CRATES="$(echo "$INSTALLED_CRATES" | xargs -I {} echo '{"name": "{}"}' | jq -cs '.')"
+            #yq -i ".cargo_packages = ${CRATES}" export-env-setup.yml
 
-    #INSTALLED_COMPOSER_PLUGINS=$(jq -r '.config."allow-plugins" | keys[]' "$(composer global config home 2> /dev/null)/composer.json")
-    #PLUGINS="$(jq -R '{name: .}' <<< "$INSTALLED_COMPOSER_PLUGINS" | jq -sc)"
-    #yq -i ".composer_packages = ${PLUGINS}" export-env-setup.yml
+            #INSTALLED_COMPOSER_PLUGINS=$(jq -r '.config."allow-plugins" | keys[]' "$(composer global config home 2> /dev/null)/composer.json")
+            #PLUGINS="$(jq -R '{name: .}' <<< "$INSTALLED_COMPOSER_PLUGINS" | jq -sc)"
+            #yq -i ".composer_packages = ${PLUGINS}" export-env-setup.yml
 
-    #INSTALLED_COMPOSER_PACKAGES=$(jq -r '.require | keys[]' "$(composer global config home 2> /dev/null)/composer.json")
-    #PACKAGES="$(jq -R '{name: .}' <<< "$INSTALLED_COMPOSER_PACKAGES" | jq -sc)"
-    #yq -i ".composer_packages = ${PACKAGES}" export-env-setup.yml
+            #INSTALLED_COMPOSER_PACKAGES=$(jq -r '.require | keys[]' "$(composer global config home 2> /dev/null)/composer.json")
+            #PACKAGES="$(jq -R '{name: .}' <<< "$INSTALLED_COMPOSER_PACKAGES" | jq -sc)"
+            #yq -i ".composer_packages = ${PACKAGES}" export-env-setup.yml
 
-    #INSTALLED_GOBINS="$(for bin in $(go env GOPATH)/bin/*; do printf "%s\n" "$(go version -m $bin | awk '$1 == "path" {print $2}' | sed 's/$/@latest/')"; done)"
-    #GOBINS="$(echo "$INSTALLED_GOBINS" | xargs -I {} echo '{"name": "{}"}' | jq -cs '.')"
-    #yq -i ".go_packages = ${GOBINS}" export-env-setup.yml
+            #INSTALLED_GOBINS="$(for bin in $(go env GOPATH)/bin/*; do printf "%s\n" "$(go version -m $bin | awk '$1 == "path" {print $2}' | sed 's/$/@latest/')"; done)"
+            #GOBINS="$(echo "$INSTALLED_GOBINS" | xargs -I {} echo '{"name": "{}"}' | jq -cs '.')"
+            #yq -i ".go_packages = ${GOBINS}" export-env-setup.yml
 
-    #INSTALLED_GEMS=$(gem list | sed 's/ (.*//')
-    #GEMS="$(jq -R '{name: .}' <<< "$INSTALLED_GEMS" | jq -sc)"
-    #yq -i ".gem_packages = ${GEMS}" export-env-setup.yml
+            #INSTALLED_GEMS=$(gem list | sed 's/ (.*//')
+            #GEMS="$(jq -R '{name: .}' <<< "$INSTALLED_GEMS" | jq -sc)"
+            #yq -i ".gem_packages = ${GEMS}" export-env-setup.yml
 
-    #INSTALLED_NPM_PACKAGES=$(npm list -g --depth=0 --parseable --silent 2>/dev/null | xargs -I {} basename {})
-    #NPM_PACKAGES="$(echo "$INSTALLED_NPM_PACKAGES" | xargs -I {} echo '{"name": "{}"}' | jq -cs '.')"
-    #yq -i ".npm_packages = ${NPM_PACKAGES}" export-env-setup.yml
-    ## Convert to YAML array format using yq
-    #echo "$INSTALLED_NPM_PACKAGES" | yq eval-all '. as $item ireduce ({}; . * $item) | to_entries | map(.value) | {"npm_packages": .}' -
+            #INSTALLED_NPM_PACKAGES=$(npm list -g --depth=0 --parseable --silent 2>/dev/null | xargs -I {} basename {})
+            #NPM_PACKAGES="$(echo "$INSTALLED_NPM_PACKAGES" | xargs -I {} echo '{"name": "{}"}' | jq -cs '.')"
+            #yq -i ".npm_packages = ${NPM_PACKAGES}" export-env-setup.yml
+            ## Convert to YAML array format using yq
+            #echo "$INSTALLED_NPM_PACKAGES" | yq eval-all '. as $item ireduce ({}; . * $item) | to_entries | map(.value) | {"npm_packages": .}' -
 
-    #INSTALLED_PIPS=$(pipx list --short | sed 's/ .*//')
-    #PIPS="$(jq -R '{name: .}' <<< "$INSTALLED_PIPS" | jq -sc)"
-    #yq -i ".pip_packages = ${PIPS}" export-env-setup.yml
+            #INSTALLED_PIPS=$(pipx list --short | sed 's/ .*//')
+            #PIPS="$(jq -R '{name: .}' <<< "$INSTALLED_PIPS" | jq -sc)"
+            #yq -i ".pip_packages = ${PIPS}" export-env-setup.yml
 
-    # 05:REPOS
+            ;;
+        05-repos)
+            echo -e "${C_HIL}Exporting 05-repos...${C_RES}"
+            # Repos export logic here
 
-    # 06:OS
+            # @TODO: Add repos export logic
+            ;;
+        06-os)
+            echo -e "${C_HIL}Exporting 06-os...${C_RES}"
+            # OS export logic here
 
-    # 07:CLOUD
+            # @TODO: Add OS export logic
+            ;;
+        07-cloud)
+            echo -e "${C_HIL}Exporting 07-cloud...${C_RES}"
+            # Cloud export logic here
 
-    # 08:PREFS
-    # defaults read com.apple.dock persistent-others | grep file-label | sed 's/.*file-label = "\(.*\)"\;/Name: /g' | awk '{print "Order: " NR, $0}'
+            # @TODO: Add cloud export logic
+            ;;
+        08-prefs)
+            echo -e "${C_HIL}Exporting 08-prefs...${C_RES}"
+            # Prefs export logic here
+
+            # defaults read com.apple.dock persistent-others | grep file-label | sed 's/.*file-label = "\(.*\)"\;/Name: /g' | awk '{print "Order: " NR, $0}'
+            ;;
+        all)
+            echo -e "${C_HIL}Exporting all ...${C_RES}"
+            # Run all exports
+            ;;
+        *)
+            echo -e "${C_ERR}Invalid playbook: ${C_WAR}$PLAYBOOK${C_RES}"
+            echo -e "${C_SUC}Available options:${C_RES}" \
+                "01-config 02-cli 03-apps 04-packages"   \
+                "05-repos 06-os 07-cloud 08-prefs"
+            exit 1
+            ;;
+    esac
 
     # @TODO: Push Saved Exported
 }
@@ -306,6 +354,7 @@ run_playbook() {
 #/          -t: Run playbook with tags
 #/          -u: Update env-setup from its remote Git source
 #/          -v: Run env-setup with verbose mode
+#/          -x: Export some/all of the current config to config.yml
 SCRIPT=$(basename "$0")
 SCRIPTS_DIR="$(dirname "$0")"
 # shellcheck source=/dev/null
@@ -333,14 +382,21 @@ while getopts 'AcCheistuvx' FLAG; do
             shift "$((OPTIND-1))"
             ;;
 
-        c) shift "$((OPTIND-1))"; config "${1:-""}"; exit 0 ;;
+        c)
+            shift "$((OPTIND-1))"
+            config "${1:-""}"
+            exit 0
+            ;;
 
         C)
             ANSIBLE_CHECK="-C"
             shift "$((OPTIND-1))"
             ;;
 
-        h) usage; exit 0 ;;
+        h)
+            usage;
+            exit 0
+            ;;
 
         e)
             $EDITOR "$ENVSETUP_DIR/config.yml"
@@ -365,7 +421,10 @@ while getopts 'AcCheistuvx' FLAG; do
             shift "$((OPTIND-1))"
             ;;
 
-        u) update; exit 0 ;;
+        u)
+            update
+            exit 0
+            ;;
 
         v)
             set -vx
@@ -374,7 +433,11 @@ while getopts 'AcCheistuvx' FLAG; do
             shift "$((OPTIND-1))"
             ;;
 
-        x) xport; exit 0 ;;
+        x)
+            shift "$((OPTIND-1))"
+            xport "${1:-""}"
+            exit 0
+            ;;
 
         *) : ;;
     esac
