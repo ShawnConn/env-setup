@@ -90,18 +90,23 @@ xport() {
     # yq --version | grep -oE '([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?'
 
     # @TODO: Backup config
-    #echo "homebrew_taps:" > /dev/stdout
-    #echo "$INSTALLED_TAPS" | sed 's/^/  - /' >>  /dev/stdout
 
     # @TODO: Check Args for Playbook
 
     # @TODO: Run Export
     # 01:CONFIG
+    # Check Config
+    # Review symlinks
+    # find . -maxdepth 3 -type l -print
+    # find . -maxdepth 3 -type l -print -exec readlink {} \;
 
     # 02:CLIS
     #INSTALLED_TAPS=$(brew tap)
     #TAPS="$(jq -c -Rs '[split("\n") | .[] | select(length > 0)]' <<< "$INSTALLED_TAPS")"
     #yq -i ".homebrew_taps = ${TAPS}" export-env-setup.yml
+
+    #echo "homebrew_taps:" > /dev/stdout
+    #echo "$INSTALLED_TAPS" | sed 's/^/  - /' >>  /dev/stdout
 
     #INSTALLED_PACKAGES=$(brew list --formulae | grep -v '^\s*$')
     #PACKAGES="$(jq -c -Rs '[split("\n") | .[] | select(length > 0)]' <<< "$INSTALLED_PACKAGES")"
@@ -109,6 +114,10 @@ xport() {
 
     #echo "envsetup_homebrew_installed_packages:" > /dev/stdout
     #echo "$INSTALLED_PACKAGES" | sed 's/^/  - /' >>  /dev/stdout
+
+    # DOCK
+    # defaults read com.apple.dock persistent-apps | grep file-label | sed 's/.*file-label = "\(.*\)"\;/Name: /g'
+    # defaults read com.apple.dock persistent-apps | grep file-label | sed 's/.*file-label = "\(.*\)"\;/Name: /g' | awk '{print "Order: " NR, $0}'
 
     # 03:APPS
 
@@ -160,6 +169,7 @@ xport() {
     # 07:CLOUD
 
     # 08:PREFS
+    # defaults read com.apple.dock persistent-others | grep file-label | sed 's/.*file-label = "\(.*\)"\;/Name: /g' | awk '{print "Order: " NR, $0}'
 
     # @TODO: Push Saved Exported
 }
