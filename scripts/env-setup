@@ -184,9 +184,65 @@ xport() {
             ;;
         05-repos)
             echo -e "${C_HIL}Exporting 05-repos...${C_RES}"
-            # Repos export logic here
 
-            # @TODO: Add repos export logic
+            # Parse git_repo_project_dir from config.yml
+            CONFIG_FILE="$HOME/env-setup/config.yml"
+            if [[ ! -f "$CONFIG_FILE" ]]; then
+                CONFIG_FILE="$INSTALL_DIR/config.yml"
+            fi
+
+            GIT_REPO_DIR=$(yq eval '.git_repo_project_dir' "$CONFIG_FILE" \
+                | sed "s|~|$HOME|g")
+
+            if [[ ! -d "$GIT_REPO_DIR" ]]; then
+                echo -e "${C_WAR}Git repo directory not found: " \
+                    "$GIT_REPO_DIR${C_RES}"
+            else
+                echo -e "${C_SUC}Scanning for git repos in: " \
+                    "${C_WAR}$GIT_REPO_DIR${C_RES}"
+
+                # Build JSON array of repo objects
+                REPO_JSON="[]"
+
+                # Find all subdirectories containing .git
+                while IFS= read -r -d '' REPO_PATH; do
+                    REPO_DIR=$(dirname "$REPO_PATH")
+                    REPO_NAME=$(basename "$REPO_DIR")
+
+                    echo -e "  Found repo: ${C_HIL}$REPO_NAME${C_RES}"
+
+                    # Get origin URL
+                    ORIGIN_URL=$(git -C "$REPO_DIR" remote get-url origin 2>/dev/null || echo "")
+
+                    # Get other remotes (excluding origin)
+                    UPSTREAM_URL=""
+                    while IFS= read -r REMOTE_NAME; do
+                        if [[ "$REMOTE_NAME" != "origin" && -n "$REMOTE_NAME" ]]; then
+                            UPSTREAM_URL=$(git -C "$REPO_DIR" remote get-url "$REMOTE_NAME" 2>/dev/null || echo "")
+                            break
+                        fi
+                    done < <(git -C "$REPO_DIR" remote 2>/dev/null)
+
+                    # Build repo object
+                    REPO_OBJ=$(jq -n \
+                        --arg name "$REPO_NAME" \
+                        --arg url "$ORIGIN_URL" \
+                        --arg upstream "$UPSTREAM_URL" \
+                        '{name: $name, url: $url, upstream: $upstream}')
+
+                    # Add to array
+                    REPO_JSON=$(jq --argjson obj "$REPO_OBJ" '. + [$obj]' <<< "$REPO_JSON")
+
+                done < <(find "$GIT_REPO_DIR" -maxdepth 2 -type d -name ".git" -print0)
+
+                # Update export-env-setup.yml with the repo array
+                if [[ "$REPO_JSON" != "[]" ]]; then
+                    yq -i ".git_repo_projects = $REPO_JSON" "$INSTALL_DIR/export-env-setup.yml"
+                    echo -e "${C_SUC}Updated export-env-setup.yml with $(jq 'length' <<< "$REPO_JSON") repos${C_RES}"
+                else
+                    echo -e "${C_WAR}No git repos found${C_RES}"
+                fi
+            fi
             ;;
         06-os)
             echo -e "${C_HIL}Exporting 06-os...${C_RES}"
