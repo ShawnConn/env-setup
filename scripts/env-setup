@@ -108,8 +108,12 @@ xport() {
             # 01:CONFIG
             # Check Config
             # Review symlinks
-            # find . -maxdepth 3 -type l -print
-            # find . -maxdepth 3 -type l -print -exec readlink {} \;
+            #
+            # DIR_SYMLINKS=$(find . -maxdepth 4 -type l -exec test -d {} \; -print | grepc '\./\.' | sort)
+            # FILE_SYMLINKS=$(find . -maxdepth 4 -type l -exec test -f {} \; -print | grepc '\./\.' | sort)
+            # echo $DIR_SYMLINKS | xargs readlink {}
+            # echo $FILE_SYMLINKS | xargs readlink {}
+            # echo $DIR_SYMLINKS | xargs readlink {} | sed 's/\..*$//g' | sort | uniq
 
             ;;
         02-cli)
@@ -394,8 +398,8 @@ run_playbook() {
 #/      Run "01-config" playbook with only the pub_dotfiles tasks
 #/   $SCRIPT -v 03-apps
 #/      Run "03-apps" playbook in verbose mode.
-#/   $SCRIPT -x
-#/      Export current setup to config.yml
+#/   $SCRIPT -x 03-apps
+#/      Export current 03-apps playbook setup to config.yml
 #/   $SCRIPT 04-my-playbook
 #/      Have $SCRIPT run the "04-my-playbook" playbook.
 #/
