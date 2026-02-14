@@ -95,7 +95,10 @@ xport() {
     fi
     # yq --version | grep -oE '([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?'
 
-    # @TODO: Backup config
+    CFILE="$INSTALL_DIR/config.yml"
+    CFILE_BAK="$INSTALL_DIR/.backup.config.yml"
+    cp "$CFILE" "$CFILE_BAK"
+    echo -e "${C_SUC}Backup config: ${C_WAR}$CFILE_BAK${C_RES}\n"
 
     # @TODO: Run Export
     # Check arg for playbook
@@ -189,13 +192,7 @@ xport() {
         05-repos)
             echo -e "${C_HIL}Exporting 05-repos...${C_RES}"
 
-            # Parse git_repo_project_dir from config.yml
-            CONFIG_FILE="$HOME/env-setup/config.yml"
-            if [[ ! -f "$CONFIG_FILE" ]]; then
-                CONFIG_FILE="$INSTALL_DIR/config.yml"
-            fi
-
-            GIT_REPO_DIR=$(yq eval '.git_repo_project_dir' "$CONFIG_FILE" \
+            GIT_REPO_DIR=$(yq eval '.git_repo_project_dir' "$CFILE" \
                 | sed "s|~|$HOME|g")
 
             if [[ ! -d "$GIT_REPO_DIR" ]]; then
