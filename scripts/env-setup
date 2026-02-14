@@ -108,42 +108,65 @@ xport() {
         01-config)
             echo -e "${C_HIL}Exporting 01-config...${C_RES}\n"
 
-            # Retrieve destination from config
+            # Retrieve destinations from config
             PUB_DEST=$(yq eval '.pub_dotfiles_repo_local_destination' "$CFILE" | sed "s|~|$HOME|g")
+            PRV_DEST=$(yq eval '.prv_dotfiles_repo_local_destination' "$CFILE" | sed "s|~|$HOME|g")
 
-            # Resolve absolute path using python for cross-platform compatibility
+            # Resolve absolute paths using python for cross-platform compatibility
+            PUB_DEST_ABS=""
             if [[ -n "$PUB_DEST" && "$PUB_DEST" != "null" ]]; then
-                PUB_DEST=$(python3 -c "import os, sys; print(os.path.realpath(os.path.expanduser(sys.argv[1])))" "$PUB_DEST")
+                 PUB_DEST_ABS=$(python3 -c "import os, sys; print(os.path.realpath(os.path.expanduser(sys.argv[1])))" "$PUB_DEST")
+            fi
 
-                if [[ -d "$PUB_DEST" ]]; then
-                    echo -e "${C_SUC}Scanning for symlinks pointing to: ${C_WAR}$PUB_DEST${C_RES}"
+            PRV_DEST_ABS=""
+            if [[ -n "$PRV_DEST" && "$PRV_DEST" != "null" ]]; then
+                 PRV_DEST_ABS=$(python3 -c "import os, sys; print(os.path.realpath(os.path.expanduser(sys.argv[1])))" "$PRV_DEST")
+            fi
 
-                    # Initialize arrays
-                    PUB_FILES=()
-                    PUB_SUBDIRS=()
+            # Check if at least one destination is valid
+            if [[ -z "$PUB_DEST_ABS" && -z "$PRV_DEST_ABS" ]]; then
+                echo -e "${C_WAR}No valid dotfiles destinations found in config.${C_RES}"
+            else
+                if [[ -n "$PUB_DEST_ABS" && -d "$PUB_DEST_ABS" ]]; then
+                    echo -e "${C_SUC}Scanning for public dotfiles in: ${C_WAR}$PUB_DEST_ABS${C_RES}"
+                fi
+                if [[ -n "$PRV_DEST_ABS" && -d "$PRV_DEST_ABS" ]]; then
+                     echo -e "${C_SUC}Scanning for private dotfiles in: ${C_WAR}$PRV_DEST_ABS${C_RES}"
+                fi
 
-                    # Find symlinks in HOME (depth 3 to catch .config/foo/bar)
-                    # Exclude Library to avoid macOS system files
-                    while IFS= read -r -d '' SYMLINK; do
-                        # Resolve target
-                        TARGET=$(python3 -c "import os, sys; print(os.path.realpath(sys.argv[1]))" "$SYMLINK")
+                # Initialize arrays
+                PUB_FILES=()
+                PUB_SUBDIRS=()
+                PRV_FILES=()
+                PRV_SUBDIRS=()
 
-                        # Check if target is inside destination
-                        if [[ "$TARGET" == "$PUB_DEST"* ]]; then
-                            REL_PATH=${SYMLINK#$HOME/}
+                # Find symlinks in HOME (depth 3 to catch .config/foo/bar)
+                # Exclude Library to avoid macOS system files
+                while IFS= read -r -d '' SYMLINK; do
+                    # Resolve target
+                    TARGET=$(python3 -c "import os, sys; print(os.path.realpath(sys.argv[1]))" "$SYMLINK")
+                    REL_PATH=${SYMLINK#$HOME/}
 
-                            if [[ -d "$TARGET" ]]; then
-                                # Add to subdirs with ~/ prefix
-                                PUB_SUBDIRS+=("~/$REL_PATH")
-                            elif [[ -f "$TARGET" ]]; then
-                                # Add to files (relative path)
-                                PUB_FILES+=("$REL_PATH")
-                            fi
+                    # Check Public
+                    if [[ -n "$PUB_DEST_ABS" && "$TARGET" == "$PUB_DEST_ABS"* ]]; then
+                        if [[ -d "$TARGET" ]]; then
+                            PUB_SUBDIRS+=("~/$REL_PATH")
+                        elif [[ -f "$TARGET" ]]; then
+                            PUB_FILES+=("$REL_PATH")
                         fi
-                    done < <(find "$HOME" -maxdepth 3 -type l -not -path "*/Library/*" -not -path "*/.Trash/*" -print0)
+                    # Check Private
+                    elif [[ -n "$PRV_DEST_ABS" && "$TARGET" == "$PRV_DEST_ABS"* ]]; then
+                         if [[ -d "$TARGET" ]]; then
+                            PRV_SUBDIRS+=("~/$REL_PATH")
+                        elif [[ -f "$TARGET" ]]; then
+                            PRV_FILES+=("$REL_PATH")
+                        fi
+                    fi
+                done < <(find "$HOME" -maxdepth 3 -type l -not -path "*/Library/*" -not -path "*/.Trash/*" -print0)
 
-                    # Update config.yml using yq
-                    if [[ ${#PUB_FILES[@]} -gt 0 ]]; then
+                # Update Public
+                if [[ -n "$PUB_DEST_ABS" ]]; then
+                     if [[ ${#PUB_FILES[@]} -gt 0 ]]; then
                         FILES_JSON=$(printf '%s\n' "${PUB_FILES[@]}" | sort | jq -R . | jq -s -c .)
                     else
                         FILES_JSON="[]"
@@ -158,12 +181,26 @@ xport() {
                     fi
                     yq -i ".pub_dotfiles_subdirs = $SUBDIRS_JSON" "$CFILE"
                     echo -e "${C_SUC}Updated ${C_WAR}pub_dotfiles_subdirs${C_SUC} with ${C_WAR}${#PUB_SUBDIRS[@]}${C_SUC} items${C_RES}"
-
-                else
-                     echo -e "${C_WAR}Destination not found or invalid: $PUB_DEST${C_RES}"
                 fi
-            else
-                 echo -e "${C_WAR}Could not determine dotfiles destination from config.${C_RES}"
+
+                # Update Private
+                if [[ -n "$PRV_DEST_ABS" ]]; then
+                     if [[ ${#PRV_FILES[@]} -gt 0 ]]; then
+                        FILES_JSON=$(printf '%s\n' "${PRV_FILES[@]}" | sort | jq -R . | jq -s -c .)
+                    else
+                        FILES_JSON="[]"
+                    fi
+                    yq -i ".prv_dotfiles_files = $FILES_JSON" "$CFILE"
+                    echo -e "${C_SUC}Updated ${C_WAR}prv_dotfiles_files${C_SUC} with ${C_WAR}${#PRV_FILES[@]}${C_SUC} items${C_RES}"
+
+                    if [[ ${#PRV_SUBDIRS[@]} -gt 0 ]]; then
+                        SUBDIRS_JSON=$(printf '%s\n' "${PRV_SUBDIRS[@]}" | sort | jq -R . | jq -s -c .)
+                    else
+                        SUBDIRS_JSON="[]"
+                    fi
+                    yq -i ".prv_dotfiles_subdirs = $SUBDIRS_JSON" "$CFILE"
+                    echo -e "${C_SUC}Updated ${C_WAR}prv_dotfiles_subdirs${C_SUC} with ${C_WAR}${#PRV_SUBDIRS[@]}${C_SUC} items${C_RES}"
+                fi
             fi
             ;;
         02-cli)
