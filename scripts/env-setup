@@ -209,14 +209,14 @@ xport() {
 
             #INSTALLED_TAPS=$(brew tap)
             #TAPS="$(jq -c -Rs '[split("\n") | .[] | select(length > 0)]' <<< "$INSTALLED_TAPS")"
-            #yq -i ".homebrew_taps = ${TAPS}" export-env-setup.yml
+            #yq -i ".homebrew_taps = ${TAPS}" "$CFILE"
 
             #echo "homebrew_taps:" > /dev/stdout
             #echo "$INSTALLED_TAPS" | sed 's/^/  - /' >>  /dev/stdout
 
             #INSTALLED_PACKAGES=$(brew list --formulae | grep -v '^\s*$')
             #PACKAGES="$(jq -c -Rs '[split("\n") | .[] | select(length > 0)]' <<< "$INSTALLED_PACKAGES")"
-            #yq -i ".envsetup_homebrew_installed_packages = ${PACKAGES}" export-env-setup.yml
+            #yq -i ".envsetup_homebrew_installed_packages = ${PACKAGES}" "$CFILE"
 
             #echo "envsetup_homebrew_installed_packages:" > /dev/stdout
             #echo "$INSTALLED_PACKAGES" | sed 's/^/  - /' >>  /dev/stdout
@@ -231,7 +231,7 @@ xport() {
 
             #INSTALLED_CASKS=$(brew list --casks | grep -v '^\s*$')
             #CASKS="$(jq -c -Rs '[split("\n") | .[] | select(length > 0)]' <<< "$INSTALLED_CASKS")"
-            #yq -i ".envsetup_homebrew_cask_apps = ${CASKS}" export-env-setup.yml
+            #yq -i ".envsetup_homebrew_cask_apps = ${CASKS}" "$CFILE"
 
             #echo "envsetup_homebrew_cask_apps:" > /dev/stdout
             #echo "$INSTALLED_CASKS" | sed 's/^/  - /' >>  /dev/stdout
@@ -240,7 +240,6 @@ xport() {
             ;;
         04-packages)
             echo -e "${C_HIL}Exporting 04-packages...${C_RES}\n"
-            # Packages export logic here
 
             INSTALLED_CRATES=$(cargo install --list  | awk '{print $1}' | uniq )
             COUNT="$(echo "$INSTALLED_CRATES" | wc -l | xargs)"
@@ -248,31 +247,42 @@ xport() {
             yq -i ".cargo_packages = ${CRATES}" "$CFILE"
             echo -e "${C_SUC}Updated ${C_WAR}cargo_packages${C_SUC} with ${C_WAR}$COUNT${C_SUC} items${C_RES}"
 
-            #INSTALLED_COMPOSER_PLUGINS=$(jq -r '.config."allow-plugins" | keys[]' "$(composer global config home 2> /dev/null)/composer.json")
-            #PLUGINS="$(jq -R '{name: .}' <<< "$INSTALLED_COMPOSER_PLUGINS" | jq -sc)"
-            #yq -i ".composer_packages = ${PLUGINS}" export-env-setup.yml
+            INSTALLED_COMPOSER_PLUGINS=$(jq -r '.config."allow-plugins" | keys[]' "$(composer global config home 2> /dev/null)/composer.json")
+            COUNT="$(echo "$INSTALLED_COMPOSER_PLUGINS" | wc -l | xargs)"
+            PLUGINS="$(jq -R '{name: .}' <<< "$INSTALLED_COMPOSER_PLUGINS" | jq -sc)"
+            yq -i ".composer_plugins = ${PLUGINS}" "$CFILE"
+            echo -e "${C_SUC}Updated ${C_WAR}composer_plugins${C_SUC} with ${C_WAR}$COUNT${C_SUC} items${C_RES}"
 
-            #INSTALLED_COMPOSER_PACKAGES=$(jq -r '.require | keys[]' "$(composer global config home 2> /dev/null)/composer.json")
-            #PACKAGES="$(jq -R '{name: .}' <<< "$INSTALLED_COMPOSER_PACKAGES" | jq -sc)"
-            #yq -i ".composer_packages = ${PACKAGES}" export-env-setup.yml
+            INSTALLED_COMPOSER_PACKAGES=$(jq -r '.require | keys[]' "$(composer global config home 2> /dev/null)/composer.json")
+            COUNT="$(echo "$INSTALLED_COMPOSER_PACKAGES" | wc -l | xargs)"
+            PACKAGES="$(jq -R '{name: .}' <<< "$INSTALLED_COMPOSER_PACKAGES" | jq -sc)"
+            yq -i ".composer_packages = ${PACKAGES}" "$CFILE"
+            echo -e "${C_SUC}Updated ${C_WAR}composer_packages${C_SUC} with ${C_WAR}$COUNT${C_SUC} items${C_RES}"
 
-            #INSTALLED_GOBINS="$(for bin in $(go env GOPATH)/bin/*; do printf "%s\n" "$(go version -m $bin | awk '$1 == "path" {print $2}' | sed 's/$/@latest/')"; done)"
-            #GOBINS="$(echo "$INSTALLED_GOBINS" | xargs -I {} echo '{"name": "{}"}' | jq -cs '.')"
-            #yq -i ".go_packages = ${GOBINS}" export-env-setup.yml
+            INSTALLED_GOBINS="$(for bin in $(go env GOPATH)/bin/*; do printf "%s\n" "$(go version -m $bin | awk '$1 == "path" {print $2}' | sed 's/$/@latest/')"; done)"
+            COUNT="$(echo "$INSTALLED_GOBINS" | wc -l | xargs)"
+            GOBINS="$(echo "$INSTALLED_GOBINS" | xargs -I {} echo '{"name": "{}"}' | jq -cs '.')"
+            yq -i ".go_packages = ${GOBINS}" "$CFILE"
+            echo -e "${C_SUC}Updated ${C_WAR}go_packages${C_SUC} with ${C_WAR}$COUNT${C_SUC} items${C_RES}"
 
-            #INSTALLED_GEMS=$(gem list | sed 's/ (.*//')
-            #GEMS="$(jq -R '{name: .}' <<< "$INSTALLED_GEMS" | jq -sc)"
-            #yq -i ".gem_packages = ${GEMS}" export-env-setup.yml
+            INSTALLED_GEMS=$(gem list | sed 's/ (.*//')
+            COUNT="$(echo "$INSTALLED_GEMS" | wc -l | xargs)"
+            GEMS="$(jq -R '{name: .}' <<< "$INSTALLED_GEMS" | jq -sc)"
+            yq -i ".gem_packages = ${GEMS}" "$CFILE"
+            echo -e "${C_SUC}Updated ${C_WAR}gem_packages${C_SUC} with ${C_WAR}$COUNT${C_SUC} items${C_RES}"
 
-            #INSTALLED_NPM_PACKAGES=$(npm list -g --depth=0 --parseable --silent 2>/dev/null | xargs -I {} basename {})
-            #NPM_PACKAGES="$(echo "$INSTALLED_NPM_PACKAGES" | xargs -I {} echo '{"name": "{}"}' | jq -cs '.')"
-            #yq -i ".npm_packages = ${NPM_PACKAGES}" export-env-setup.yml
-            ## Convert to YAML array format using yq
-            #echo "$INSTALLED_NPM_PACKAGES" | yq eval-all '. as $item ireduce ({}; . * $item) | to_entries | map(.value) | {"npm_packages": .}' -
+            INSTALLED_NPM_PACKAGES=$(npm list -g --depth=0 --parseable --silent 2>/dev/null | xargs -I {} basename {})
+            COUNT="$(echo "$INSTALLED_NPM_PACKAGES" | wc -l | xargs)"
+            NPM_PACKAGES="$(echo "$INSTALLED_NPM_PACKAGES" | xargs -I {} echo '{"name": "{}"}' | jq -cs '.')"
+            yq -i ".npm_packages = ${NPM_PACKAGES}" "$CFILE"
+            echo -e "${C_SUC}Updated ${C_WAR}npm_packages${C_SUC} with ${C_WAR}$COUNT${C_SUC} items${C_RES}"
 
-            #INSTALLED_PIPS=$(pipx list --short | sed 's/ .*//')
-            #PIPS="$(jq -R '{name: .}' <<< "$INSTALLED_PIPS" | jq -sc)"
-            #yq -i ".pip_packages = ${PIPS}" export-env-setup.yml
+            INSTALLED_PIPS=$(pipx list --short | sed 's/ .*//')
+            COUNT="$(echo "$INSTALLED_PIPS" | wc -l | xargs)"
+            PIPS="$(jq -R '{name: .}' <<< "$INSTALLED_PIPS" | jq -sc)"
+            yq -i ".pip_packages = ${PIPS}" "$CFILE"
+            echo -e "${C_SUC}Updated ${C_WAR}pip_packages${C_SUC} with ${C_WAR}$COUNT${C_SUC} items${C_RES}"
+            #@TOOD: capture version
 
             ;;
         05-repos)
@@ -322,10 +332,10 @@ xport() {
 
                 done < <(find "$GIT_REPO_DIR" -maxdepth 2 -type d -name ".git" -print0)
 
-                # Update export-env-setup.yml with the repo array
+                # Update "$CFILE" with the repo array
                 if [[ "$REPO_JSON" != "[]" ]]; then
-                    yq -i ".git_repo_projects = $REPO_JSON" "$INSTALL_DIR/export-env-setup.yml"
-                    echo -e "${C_SUC}Updated export-env-setup.yml with $(jq 'length' <<< "$REPO_JSON") repos${C_RES}"
+                    yq -i ".git_repo_projects = $REPO_JSON" "$CFILE"
+                    echo -e "${C_SUC}Updated $CFILE with $(jq 'length' <<< "$REPO_JSON") repos${C_RES}"
                 else
                     echo -e "${C_WAR}No git repos found${C_RES}"
                 fi
