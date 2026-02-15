@@ -204,7 +204,7 @@ xport() {
             fi
             ;;
         02-cli)
-            echo -e "${C_HIL}Exporting 02-cli...${C_RES}"
+            echo -e "${C_HIL}Exporting 02-cli...${C_RES}\n"
             # CLI export logic here
 
             #INSTALLED_TAPS=$(brew tap)
@@ -226,7 +226,7 @@ xport() {
             # defaults read com.apple.dock persistent-apps | grep file-label | sed 's/.*file-label = "\(.*\)"\;/Name: /g' | awk '{print "Order: " NR, $0}'
             ;;
         03-apps)
-            echo -e "${C_HIL}Exporting 03-apps...${C_RES}"
+            echo -e "${C_HIL}Exporting 03-apps...${C_RES}\n"
             # Apps export logic here
 
             #INSTALLED_CASKS=$(brew list --casks | grep -v '^\s*$')
@@ -239,12 +239,14 @@ xport() {
             #brew bundle dump --file=- | sed -n '/^mas/p'
             ;;
         04-packages)
-            echo -e "${C_HIL}Exporting 04-packages...${C_RES}"
+            echo -e "${C_HIL}Exporting 04-packages...${C_RES}\n"
             # Packages export logic here
 
-            #INSTALLED_CRATES=$(cargo install --list  | awk '{print $1}' | uniq )
-            #CRATES="$(echo "$INSTALLED_CRATES" | xargs -I {} echo '{"name": "{}"}' | jq -cs '.')"
-            #yq -i ".cargo_packages = ${CRATES}" export-env-setup.yml
+            INSTALLED_CRATES=$(cargo install --list  | awk '{print $1}' | uniq )
+            COUNT="$(echo "$INSTALLED_CRATES" | wc -l | xargs)"
+            CRATES="$(echo "$INSTALLED_CRATES" | xargs -I {} echo '{"name": "{}"}' | jq -cs '.')"
+            yq -i ".cargo_packages = ${CRATES}" "$CFILE"
+            echo -e "${C_SUC}Updated ${C_WAR}cargo_packages${C_SUC} with ${C_WAR}$COUNT${C_SUC} items${C_RES}"
 
             #INSTALLED_COMPOSER_PLUGINS=$(jq -r '.config."allow-plugins" | keys[]' "$(composer global config home 2> /dev/null)/composer.json")
             #PLUGINS="$(jq -R '{name: .}' <<< "$INSTALLED_COMPOSER_PLUGINS" | jq -sc)"
@@ -274,7 +276,7 @@ xport() {
 
             ;;
         05-repos)
-            echo -e "${C_HIL}Exporting 05-repos...${C_RES}"
+            echo -e "${C_HIL}Exporting 05-repos...${C_RES}\n"
 
             GIT_REPO_DIR=$(yq eval '.git_repo_project_dir' "$CFILE" \
                 | sed "s|~|$HOME|g")
@@ -330,25 +332,25 @@ xport() {
             fi
             ;;
         06-os)
-            echo -e "${C_HIL}Exporting 06-os...${C_RES}"
+            echo -e "${C_HIL}Exporting 06-os...${C_RES}\n"
             # OS export logic here
 
             # @TODO: Add OS export logic
             ;;
         07-cloud)
-            echo -e "${C_HIL}Exporting 07-cloud...${C_RES}"
+            echo -e "${C_HIL}Exporting 07-cloud...${C_RES}\n"
             # Cloud export logic here
 
             # @TODO: Add cloud export logic
             ;;
         08-prefs)
-            echo -e "${C_HIL}Exporting 08-prefs...${C_RES}"
+            echo -e "${C_HIL}Exporting 08-prefs...${C_RES}\n"
             # Prefs export logic here
 
             # defaults read com.apple.dock persistent-others | grep file-label | sed 's/.*file-label = "\(.*\)"\;/Name: /g' | awk '{print "Order: " NR, $0}'
             ;;
         all)
-            echo -e "${C_HIL}Exporting all ...${C_RES}"
+            echo -e "${C_HIL}Exporting all ...${C_RES}\n"
             # Run all exports
             ;;
         *)
