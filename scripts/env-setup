@@ -98,8 +98,8 @@ xport() {
     CFILE_BAK="$INSTALL_DIR/.backup.config.yml"
     YQV=$(yq --version | grep --color=none -oE '([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?' | xargs)
     cp "$CFILE" "$CFILE_BAK"
-    echo -e "${C_SUC}yq version: ${C_WAR}$YQV${C_RES}\n"
-    echo -e "${C_SUC}Backup config: ${C_WAR}$CFILE_BAK${C_RES}\n"
+    echo -e "${C_SUC}yq version: ${C_WAR}$YQV${C_RES}"
+    echo -e "${C_SUC}Backup config: ${C_WAR}$CFILE_BAK${C_RES}"
 
     # Check arg for playbook
     PLAYBOOK=${1:-"all"}
