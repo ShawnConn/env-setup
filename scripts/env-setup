@@ -72,6 +72,7 @@ config() {
 # Export env-setup
 # $1: The playbook to export config for (default: "all")
 xport() {
+    # @TODO: func refactor
     REQUIRED_CMDS=(jq yq)
     MISSING=()
     for _cmd in "${REQUIRED_CMDS[@]}"; do
@@ -343,25 +344,50 @@ xport() {
             ;;
         06-os)
             echo -e "${C_HIL}Exporting 06-os...${C_RES}\n"
-            # OS export logic here
-
             # @TODO: Add OS export logic
+            #
+            # envsetup_os_hostname
+            # envsetup_os_avatar_url
+            # envsetup_os_macos_config_script
+            # envsetup_os_macos_settings
+            # envsetup_os_macos_sudo_settings
+            # envsetup_os_linux_settings
+
             ;;
         07-cloud)
             echo -e "${C_HIL}Exporting 07-cloud...${C_RES}\n"
-            # Cloud export logic here
-
             # @TODO: Add cloud export logic
+            #
+            # envsetup_cloud_app
+            # envsetup_cloud_dir
+            # envsetup_cloud_backup_dir
+            # envsetup_cloud_sync_script
+            # envsetup_cloud_project_root
+            # envsetup_cloud_project_list
+            # envsetup_cloud_project_dirs
+            # envsetup_cloud_project_symlink
+
             ;;
         08-prefs)
             echo -e "${C_HIL}Exporting 08-prefs...${C_RES}\n"
-            # Prefs export logic here
+            # @TODO: Prefs export logic here
+            #
+            # envsetup_prefs_macos_other_dockitems_persist
+            # envsetup_prefs_macos_other_dockitems_remove
+            # envsetup_prefs_macos_file_extension_handlers
+            # envsetup_prefs_macos_login_items
+            # envsetup_prefs_macos_settings
+            # envsetup_prefs_macos_sudo_settings
+            # envsetup_prefs_macos_app_open
+            # envsetup_prefs_visual_studio_code_extensions
+            # envsetup_prefs_visual_studio_code_extensions_absent
 
             # defaults read com.apple.dock persistent-others | grep file-label | sed 's/.*file-label = "\(.*\)"\;/Name: /g' | awk '{print "Order: " NR, $0}'
             ;;
         all)
             echo -e "${C_HIL}Exporting all ...${C_RES}\n"
-            # Run all exports
+            # @TODO: Run all exports
+
             ;;
         *)
             echo -e "${C_ERR}Invalid playbook: ${C_WAR}$PLAYBOOK${C_RES}"
