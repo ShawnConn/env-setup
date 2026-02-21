@@ -69,10 +69,328 @@ config() {
     fi
 }
 
+# Config export for 01-config playbook
+# $1: The config file path
+config_export_01_config() {
+    local CFILE="$1"
+    echo -e "${C_HIL}Exporting 01-config...${C_RES}\n"
+
+    # Retrieve destinations from config
+    PUB_DEST=$(yq eval '.pub_dotfiles_repo_local_destination' "$CFILE" | sed "s|~|$HOME|g")
+    PRV_DEST=$(yq eval '.prv_dotfiles_repo_local_destination' "$CFILE" | sed "s|~|$HOME|g")
+
+    # Resolve absolute paths using python for cross-platform compatibility
+    PUB_DEST_ABS=""
+    if [[ -n "$PUB_DEST" && "$PUB_DEST" != "null" ]]; then
+         PUB_DEST_ABS=$(python3 -c "import os, sys; print(os.path.realpath(os.path.expanduser(sys.argv[1])))" "$PUB_DEST")
+    fi
+
+    PRV_DEST_ABS=""
+    if [[ -n "$PRV_DEST" && "$PRV_DEST" != "null" ]]; then
+         PRV_DEST_ABS=$(python3 -c "import os, sys; print(os.path.realpath(os.path.expanduser(sys.argv[1])))" "$PRV_DEST")
+    fi
+
+    # Check if at least one destination is valid
+    if [[ -z "$PUB_DEST_ABS" && -z "$PRV_DEST_ABS" ]]; then
+        echo -e "${C_WAR}No valid dotfiles destinations found in config.${C_RES}"
+    else
+        if [[ -n "$PUB_DEST_ABS" && -d "$PUB_DEST_ABS" ]]; then
+            echo -e "${C_SUC}Scanning for public dotfiles in: ${C_WAR}$PUB_DEST_ABS${C_RES}"
+        fi
+        if [[ -n "$PRV_DEST_ABS" && -d "$PRV_DEST_ABS" ]]; then
+             echo -e "${C_SUC}Scanning for private dotfiles in: ${C_WAR}$PRV_DEST_ABS${C_RES}"
+        fi
+
+        # Initialize arrays
+        PUB_FILES=()
+        PUB_SUBDIRS=()
+        PRV_FILES=()
+        PRV_SUBDIRS=()
+
+        # Find symlinks in HOME (depth 3 to catch .config/foo/bar)
+        # Exclude Library to avoid macOS system files
+        while IFS= read -r -d '' SYMLINK; do
+            # Resolve target
+            TARGET=$(python3 -c "import os, sys; print(os.path.realpath(sys.argv[1]))" "$SYMLINK")
+            REL_PATH=${SYMLINK#$HOME/}
+
+            # Check Public
+            if [[ -n "$PUB_DEST_ABS" && "$TARGET" == "$PUB_DEST_ABS"* ]]; then
+                if [[ -d "$TARGET" ]]; then
+                    PUB_SUBDIRS+=("~/$REL_PATH")
+                elif [[ -f "$TARGET" ]]; then
+                    PUB_FILES+=("$REL_PATH")
+                fi
+            # Check Private
+            elif [[ -n "$PRV_DEST_ABS" && "$TARGET" == "$PRV_DEST_ABS"* ]]; then
+                 if [[ -d "$TARGET" ]]; then
+                    PRV_SUBDIRS+=("~/$REL_PATH")
+                elif [[ -f "$TARGET" ]]; then
+                    PRV_FILES+=("$REL_PATH")
+                fi
+            fi
+        done < <(find "$HOME" -maxdepth 3 -type l -not -path "*/Library/*" -not -path "*/.Trash/*" -print0)
+
+        # Update Public
+        if [[ -n "$PUB_DEST_ABS" ]]; then
+             if [[ ${#PUB_FILES[@]} -gt 0 ]]; then
+                FILES_JSON=$(printf '%s\n' "${PUB_FILES[@]}" | sort | jq -R . | jq -s -c .)
+            else
+                FILES_JSON="[]"
+            fi
+            yq -i ".pub_dotfiles_files = $FILES_JSON" "$CFILE"
+            echo -e "${C_SUC}Updated ${C_WAR}pub_dotfiles_files${C_SUC} with ${C_WAR}${#PUB_FILES[@]}${C_SUC} items${C_RES}"
+
+            if [[ ${#PUB_SUBDIRS[@]} -gt 0 ]]; then
+                SUBDIRS_JSON=$(printf '%s\n' "${PUB_SUBDIRS[@]}" | sort | jq -R . | jq -s -c .)
+            else
+                SUBDIRS_JSON="[]"
+            fi
+            yq -i ".pub_dotfiles_subdirs = $SUBDIRS_JSON" "$CFILE"
+            echo -e "${C_SUC}Updated ${C_WAR}pub_dotfiles_subdirs${C_SUC} with ${C_WAR}${#PUB_SUBDIRS[@]}${C_SUC} items${C_RES}"
+        fi
+
+        # Update Private
+        if [[ -n "$PRV_DEST_ABS" ]]; then
+             if [[ ${#PRV_FILES[@]} -gt 0 ]]; then
+                FILES_JSON=$(printf '%s\n' "${PRV_FILES[@]}" | sort | jq -R . | jq -s -c .)
+            else
+                FILES_JSON="[]"
+            fi
+            yq -i ".prv_dotfiles_files = $FILES_JSON" "$CFILE"
+            echo -e "${C_SUC}Updated ${C_WAR}prv_dotfiles_files${C_SUC} with ${C_WAR}${#PRV_FILES[@]}${C_SUC} items${C_RES}"
+
+            if [[ ${#PRV_SUBDIRS[@]} -gt 0 ]]; then
+                SUBDIRS_JSON=$(printf '%s\n' "${PRV_SUBDIRS[@]}" | sort | jq -R . | jq -s -c .)
+            else
+                SUBDIRS_JSON="[]"
+            fi
+            yq -i ".prv_dotfiles_subdirs = $SUBDIRS_JSON" "$CFILE"
+            echo -e "${C_SUC}Updated ${C_WAR}prv_dotfiles_subdirs${C_SUC} with ${C_WAR}${#PRV_SUBDIRS[@]}${C_SUC} items${C_RES}"
+        fi
+    fi
+
+    echo -e "\n"
+}
+
+# Config export for 02-cli playbook
+# $1: The config file path
+config_export_02_cli() {
+    local CFILE="$1"
+    echo -e "${C_HIL}Exporting 02-cli...${C_RES}\n"
+
+    INSTALLED_TAPS=$(brew tap)
+    COUNT="$(echo "$INSTALLED_TAPS" | wc -l | xargs)"
+    TAPS="$(jq -c -Rs '[split("\n") | .[] | select(length > 0)]' <<< "$INSTALLED_TAPS")"
+    yq -i ".homebrew_taps = ${TAPS}" "$CFILE"
+    echo -e "${C_SUC}Updated ${C_WAR}homebrew_taps${C_SUC} with ${C_WAR}$COUNT${C_SUC} items${C_RES}"
+
+    INSTALLED_PACKAGES=$(brew list --formulae | grep -v '^\s*$')
+    COUNT="$(echo "$INSTALLED_PACKAGES" | wc -l | xargs)"
+    PACKAGES="$(jq -c -Rs '[split("\n") | .[] | select(length > 0)]' <<< "$INSTALLED_PACKAGES")"
+    yq -i ".envsetup_homebrew_installed_packages = ${PACKAGES}" "$CFILE"
+    echo -e "${C_SUC}Updated ${C_WAR}envsetup_homebrew_installed_packages${C_SUC} with ${C_WAR}$COUNT${C_SUC} items${C_RES}"
+
+    echo -e "\n"
+}
+
+# Config export for 03-apps playbook
+# $1: The config file path
+config_export_03_apps() {
+    local CFILE="$1"
+    echo -e "${C_HIL}Exporting 03-apps...${C_RES}\n"
+
+    INSTALLED_CASKS=$(brew list --casks | grep -v '^\s*$')
+    COUNT="$(echo "$INSTALLED_CASKS" | wc -l | xargs)"
+    CASKS="$(jq -c -Rs '[split("\n") | .[] | select(length > 0)]' <<< "$INSTALLED_CASKS")"
+    yq -i ".envsetup_homebrew_cask_apps = ${CASKS}" "$CFILE"
+    echo -e "${C_SUC}Updated ${C_WAR}envsetup_homebrew_cask_apps${C_SUC} with ${C_WAR}$COUNT${C_SUC} items${C_RES}"
+
+    #@TODO: mas_installed_apps|mas_uninstalled_apps
+    #brew bundle dump --file=- | sed -n '/^mas/p'
+    #@TODO: configure_dock | dockitems_persist | dockitems_remove
+    #@TODO: envsetup_apps_macos_settings | envsetup_apps_macos_sudo_settings | envsetup_apps_macos_app_open:
+
+    # DOCK
+    # defaults read com.apple.dock persistent-apps | grep file-label | sed 's/.*file-label = "\(.*\)"\;/Name: /g'
+    # defaults read com.apple.dock persistent-apps | grep file-label | sed 's/.*file-label = "\(.*\)"\;/Name: /g' | awk '{print "Order: " NR, $0}'
+    echo -e "\n"
+}
+
+# Config export for 04-packages playbook
+# $1: The config file path
+config_export_04_packages() {
+    local CFILE="$1"
+    echo -e "${C_HIL}Exporting 04-packages...${C_RES}\n"
+
+    INSTALLED_CRATES=$(cargo install --list  | awk '{print $1}' | uniq )
+    COUNT="$(echo "$INSTALLED_CRATES" | wc -l | xargs)"
+    CRATES="$(echo "$INSTALLED_CRATES" | xargs -I {} echo '{"name": "{}"}' | jq -cs '.')"
+    yq -i ".cargo_packages = ${CRATES}" "$CFILE"
+    echo -e "${C_SUC}Updated ${C_WAR}cargo_packages${C_SUC} with ${C_WAR}$COUNT${C_SUC} items${C_RES}"
+
+    INSTALLED_COMPOSER_PLUGINS=$(jq -r '.config."allow-plugins" | keys[]' "$(composer global config home 2> /dev/null)/composer.json")
+    COUNT="$(echo "$INSTALLED_COMPOSER_PLUGINS" | wc -l | xargs)"
+    PLUGINS="$(jq -R '{name: .}' <<< "$INSTALLED_COMPOSER_PLUGINS" | jq -sc)"
+    yq -i ".composer_plugins = ${PLUGINS}" "$CFILE"
+    echo -e "${C_SUC}Updated ${C_WAR}composer_plugins${C_SUC} with ${C_WAR}$COUNT${C_SUC} items${C_RES}"
+
+    INSTALLED_COMPOSER_PACKAGES=$(jq -r '.require | keys[]' "$(composer global config home 2> /dev/null)/composer.json")
+    COUNT="$(echo "$INSTALLED_COMPOSER_PACKAGES" | wc -l | xargs)"
+    PACKAGES="$(jq -R '{name: .}' <<< "$INSTALLED_COMPOSER_PACKAGES" | jq -sc)"
+    yq -i ".composer_packages = ${PACKAGES}" "$CFILE"
+    echo -e "${C_SUC}Updated ${C_WAR}composer_packages${C_SUC} with ${C_WAR}$COUNT${C_SUC} items${C_RES}"
+
+    INSTALLED_GOBINS="$(for bin in $(go env GOPATH)/bin/*; do printf "%s\n" "$(go version -m $bin | awk '$1 == "path" {print $2}' | sed 's/$/@latest/')"; done)"
+    COUNT="$(echo "$INSTALLED_GOBINS" | wc -l | xargs)"
+    GOBINS="$(echo "$INSTALLED_GOBINS" | xargs -I {} echo '{"name": "{}"}' | jq -cs '.')"
+    yq -i ".go_packages = ${GOBINS}" "$CFILE"
+    echo -e "${C_SUC}Updated ${C_WAR}go_packages${C_SUC} with ${C_WAR}$COUNT${C_SUC} items${C_RES}"
+
+    INSTALLED_GEMS=$(gem list | sed 's/ (.*//')
+    COUNT="$(echo "$INSTALLED_GEMS" | wc -l | xargs)"
+    GEMS="$(jq -R '{name: .}' <<< "$INSTALLED_GEMS" | jq -sc)"
+    yq -i ".gem_packages = ${GEMS}" "$CFILE"
+    echo -e "${C_SUC}Updated ${C_WAR}gem_packages${C_SUC} with ${C_WAR}$COUNT${C_SUC} items${C_RES}"
+
+    INSTALLED_NPM_PACKAGES=$(npm list -g --depth=0 --parseable --silent 2>/dev/null | xargs -I {} basename {})
+    COUNT="$(echo "$INSTALLED_NPM_PACKAGES" | wc -l | xargs)"
+    NPM_PACKAGES="$(echo "$INSTALLED_NPM_PACKAGES" | xargs -I {} echo '{"name": "{}"}' | jq -cs '.')"
+    yq -i ".npm_packages = ${NPM_PACKAGES}" "$CFILE"
+    echo -e "${C_SUC}Updated ${C_WAR}npm_packages${C_SUC} with ${C_WAR}$COUNT${C_SUC} items${C_RES}"
+
+    INSTALLED_PIPS=$(pipx list --short | sed 's/ .*//')
+    COUNT="$(echo "$INSTALLED_PIPS" | wc -l | xargs)"
+    PIPS="$(jq -R '{name: .}' <<< "$INSTALLED_PIPS" | jq -sc)"
+    yq -i ".pip_packages = ${PIPS}" "$CFILE"
+    echo -e "${C_SUC}Updated ${C_WAR}pip_packages${C_SUC} with ${C_WAR}$COUNT${C_SUC} items${C_RES}"
+    #@TOOD: capture version
+
+    echo -e "\n"
+}
+
+# Config export for 05-repos playbook
+# $1: The config file path
+config_export_05_repos() {
+    local CFILE="$1"
+    echo -e "${C_HIL}Exporting 05-repos...${C_RES}\n"
+
+    GIT_REPO_DIR=$(yq eval '.git_repo_project_dir' "$CFILE" \
+        | sed "s|~|$HOME|g")
+
+    if [[ ! -d "$GIT_REPO_DIR" ]]; then
+        echo -e "${C_WAR}Git repo directory not found: " \
+            "$GIT_REPO_DIR${C_RES}"
+    else
+        echo -e "${C_SUC}Scanning for git repos in: " \
+            "${C_WAR}$GIT_REPO_DIR${C_RES}"
+
+        # Build JSON array of repo objects
+        REPO_JSON="[]"
+
+        # Find all subdirectories containing .git
+        while IFS= read -r -d '' REPO_PATH; do
+            REPO_DIR=$(dirname "$REPO_PATH")
+            REPO_NAME=$(basename "$REPO_DIR")
+
+            echo -e "  Found repo: ${C_HIL}$REPO_NAME${C_RES}"
+
+            # Get origin URL
+            ORIGIN_URL=$(git -C "$REPO_DIR" remote get-url origin 2>/dev/null || echo "")
+
+            # Get other remotes (excluding origin)
+            UPSTREAM_URL=""
+            while IFS= read -r REMOTE_NAME; do
+                if [[ "$REMOTE_NAME" != "origin" && -n "$REMOTE_NAME" ]]; then
+                    UPSTREAM_URL=$(git -C "$REPO_DIR" remote get-url "$REMOTE_NAME" 2>/dev/null || echo "")
+                    break
+                fi
+            done < <(git -C "$REPO_DIR" remote 2>/dev/null)
+
+            # Build repo object
+            REPO_OBJ=$(jq -n \
+                --arg name "$REPO_NAME" \
+                --arg url "$ORIGIN_URL" \
+                --arg upstream "$UPSTREAM_URL" \
+                '{name: $name, url: $url, upstream: $upstream}')
+
+            # Add to array
+            REPO_JSON=$(jq --argjson obj "$REPO_OBJ" '. + [$obj]' <<< "$REPO_JSON")
+
+        done < <(find "$GIT_REPO_DIR" -maxdepth 2 -type d -name ".git" -print0)
+
+        # Update "$CFILE" with the repo array
+        if [[ "$REPO_JSON" != "[]" ]]; then
+            yq -i ".git_repo_projects = $REPO_JSON" "$CFILE"
+            echo -e "${C_SUC}Updated $CFILE with $(jq 'length' <<< "$REPO_JSON") repos${C_RES}"
+        else
+            echo -e "${C_WAR}No git repos found${C_RES}"
+        fi
+    fi
+
+    echo -e "\n"
+}
+
+# Config export for 06-os playbook
+# $1: The config file path
+config_export_06_os() {
+    local CFILE="$1"
+    echo -e "${C_HIL}Exporting 06-os...${C_RES}\n"
+    # @TODO: Add OS export logic
+    #
+    # envsetup_os_hostname
+    # envsetup_os_avatar_url
+    # envsetup_os_macos_settings
+    # envsetup_os_macos_sudo_settings
+
+    echo -e "\n"
+}
+
+# Config export for 07-cloud playbook
+# $1: The config file path
+config_export_07_cloud() {
+    local CFILE="$1"
+    echo -e "${C_HIL}Exporting 07-cloud...${C_RES}\n"
+    # @TODO: Add cloud export logic
+    #
+    # envsetup_cloud_app
+    # envsetup_cloud_dir
+    # envsetup_cloud_backup_dir
+    # envsetup_cloud_sync_script
+    # envsetup_cloud_project_root
+    # envsetup_cloud_project_list
+    # envsetup_cloud_project_dirs
+    # envsetup_cloud_project_symlink
+
+    echo -e "\n"
+}
+
+# Config export for 08-prefs playbook
+# $1: The config file path
+config_export_08_prefs() {
+    local CFILE="$1"
+    echo -e "${C_HIL}Exporting 08-prefs...${C_RES}\n"
+    # @TODO: Prefs export logic here
+    #
+    # envsetup_prefs_macos_other_dockitems_persist
+    # envsetup_prefs_macos_other_dockitems_remove
+    # envsetup_prefs_macos_file_extension_handlers
+    # envsetup_prefs_macos_login_items
+    # envsetup_prefs_macos_settings
+    # envsetup_prefs_macos_sudo_settings
+    # envsetup_prefs_macos_app_open
+    # envsetup_prefs_visual_studio_code_extensions
+    # envsetup_prefs_visual_studio_code_extensions_absent
+
+    # defaults read com.apple.dock persistent-others | grep file-label | sed 's/.*file-label = "\(.*\)"\;/Name: /g' | awk '{print "Order: " NR, $0}'
+
+    echo -e "\n"
+}
+
 # Export env-setup
 # $1: The playbook to export config for (default: "all")
-xport() {
-    # @TODO: func refactor
+config_export() {
+    # Check for dependencies
     REQUIRED_CMDS=(jq yq)
     MISSING=()
     for _cmd in "${REQUIRED_CMDS[@]}"; do
@@ -107,287 +425,38 @@ xport() {
     echo -e "${C_SUC}Exporting playbook config: ${C_WAR}$PLAYBOOK${C_RES}\n"
     case "$PLAYBOOK" in
         01-config)
-            echo -e "${C_HIL}Exporting 01-config...${C_RES}\n"
-
-            # Retrieve destinations from config
-            PUB_DEST=$(yq eval '.pub_dotfiles_repo_local_destination' "$CFILE" | sed "s|~|$HOME|g")
-            PRV_DEST=$(yq eval '.prv_dotfiles_repo_local_destination' "$CFILE" | sed "s|~|$HOME|g")
-
-            # Resolve absolute paths using python for cross-platform compatibility
-            PUB_DEST_ABS=""
-            if [[ -n "$PUB_DEST" && "$PUB_DEST" != "null" ]]; then
-                 PUB_DEST_ABS=$(python3 -c "import os, sys; print(os.path.realpath(os.path.expanduser(sys.argv[1])))" "$PUB_DEST")
-            fi
-
-            PRV_DEST_ABS=""
-            if [[ -n "$PRV_DEST" && "$PRV_DEST" != "null" ]]; then
-                 PRV_DEST_ABS=$(python3 -c "import os, sys; print(os.path.realpath(os.path.expanduser(sys.argv[1])))" "$PRV_DEST")
-            fi
-
-            # Check if at least one destination is valid
-            if [[ -z "$PUB_DEST_ABS" && -z "$PRV_DEST_ABS" ]]; then
-                echo -e "${C_WAR}No valid dotfiles destinations found in config.${C_RES}"
-            else
-                if [[ -n "$PUB_DEST_ABS" && -d "$PUB_DEST_ABS" ]]; then
-                    echo -e "${C_SUC}Scanning for public dotfiles in: ${C_WAR}$PUB_DEST_ABS${C_RES}"
-                fi
-                if [[ -n "$PRV_DEST_ABS" && -d "$PRV_DEST_ABS" ]]; then
-                     echo -e "${C_SUC}Scanning for private dotfiles in: ${C_WAR}$PRV_DEST_ABS${C_RES}"
-                fi
-
-                # Initialize arrays
-                PUB_FILES=()
-                PUB_SUBDIRS=()
-                PRV_FILES=()
-                PRV_SUBDIRS=()
-
-                # Find symlinks in HOME (depth 3 to catch .config/foo/bar)
-                # Exclude Library to avoid macOS system files
-                while IFS= read -r -d '' SYMLINK; do
-                    # Resolve target
-                    TARGET=$(python3 -c "import os, sys; print(os.path.realpath(sys.argv[1]))" "$SYMLINK")
-                    REL_PATH=${SYMLINK#$HOME/}
-
-                    # Check Public
-                    if [[ -n "$PUB_DEST_ABS" && "$TARGET" == "$PUB_DEST_ABS"* ]]; then
-                        if [[ -d "$TARGET" ]]; then
-                            PUB_SUBDIRS+=("~/$REL_PATH")
-                        elif [[ -f "$TARGET" ]]; then
-                            PUB_FILES+=("$REL_PATH")
-                        fi
-                    # Check Private
-                    elif [[ -n "$PRV_DEST_ABS" && "$TARGET" == "$PRV_DEST_ABS"* ]]; then
-                         if [[ -d "$TARGET" ]]; then
-                            PRV_SUBDIRS+=("~/$REL_PATH")
-                        elif [[ -f "$TARGET" ]]; then
-                            PRV_FILES+=("$REL_PATH")
-                        fi
-                    fi
-                done < <(find "$HOME" -maxdepth 3 -type l -not -path "*/Library/*" -not -path "*/.Trash/*" -print0)
-
-                # Update Public
-                if [[ -n "$PUB_DEST_ABS" ]]; then
-                     if [[ ${#PUB_FILES[@]} -gt 0 ]]; then
-                        FILES_JSON=$(printf '%s\n' "${PUB_FILES[@]}" | sort | jq -R . | jq -s -c .)
-                    else
-                        FILES_JSON="[]"
-                    fi
-                    yq -i ".pub_dotfiles_files = $FILES_JSON" "$CFILE"
-                    echo -e "${C_SUC}Updated ${C_WAR}pub_dotfiles_files${C_SUC} with ${C_WAR}${#PUB_FILES[@]}${C_SUC} items${C_RES}"
-
-                    if [[ ${#PUB_SUBDIRS[@]} -gt 0 ]]; then
-                        SUBDIRS_JSON=$(printf '%s\n' "${PUB_SUBDIRS[@]}" | sort | jq -R . | jq -s -c .)
-                    else
-                        SUBDIRS_JSON="[]"
-                    fi
-                    yq -i ".pub_dotfiles_subdirs = $SUBDIRS_JSON" "$CFILE"
-                    echo -e "${C_SUC}Updated ${C_WAR}pub_dotfiles_subdirs${C_SUC} with ${C_WAR}${#PUB_SUBDIRS[@]}${C_SUC} items${C_RES}"
-                fi
-
-                # Update Private
-                if [[ -n "$PRV_DEST_ABS" ]]; then
-                     if [[ ${#PRV_FILES[@]} -gt 0 ]]; then
-                        FILES_JSON=$(printf '%s\n' "${PRV_FILES[@]}" | sort | jq -R . | jq -s -c .)
-                    else
-                        FILES_JSON="[]"
-                    fi
-                    yq -i ".prv_dotfiles_files = $FILES_JSON" "$CFILE"
-                    echo -e "${C_SUC}Updated ${C_WAR}prv_dotfiles_files${C_SUC} with ${C_WAR}${#PRV_FILES[@]}${C_SUC} items${C_RES}"
-
-                    if [[ ${#PRV_SUBDIRS[@]} -gt 0 ]]; then
-                        SUBDIRS_JSON=$(printf '%s\n' "${PRV_SUBDIRS[@]}" | sort | jq -R . | jq -s -c .)
-                    else
-                        SUBDIRS_JSON="[]"
-                    fi
-                    yq -i ".prv_dotfiles_subdirs = $SUBDIRS_JSON" "$CFILE"
-                    echo -e "${C_SUC}Updated ${C_WAR}prv_dotfiles_subdirs${C_SUC} with ${C_WAR}${#PRV_SUBDIRS[@]}${C_SUC} items${C_RES}"
-                fi
-            fi
+            config_export_01_config "$CFILE"
             ;;
         02-cli)
-            echo -e "${C_HIL}Exporting 02-cli...${C_RES}\n"
-
-            INSTALLED_TAPS=$(brew tap)
-            COUNT="$(echo "$INSTALLED_TAPS" | wc -l | xargs)"
-            TAPS="$(jq -c -Rs '[split("\n") | .[] | select(length > 0)]' <<< "$INSTALLED_TAPS")"
-            yq -i ".homebrew_taps = ${TAPS}" "$CFILE"
-            echo -e "${C_SUC}Updated ${C_WAR}homebrew_taps${C_SUC} with ${C_WAR}$COUNT${C_SUC} items${C_RES}"
-
-            INSTALLED_PACKAGES=$(brew list --formulae | grep -v '^\s*$')
-            COUNT="$(echo "$INSTALLED_PACKAGES" | wc -l | xargs)"
-            PACKAGES="$(jq -c -Rs '[split("\n") | .[] | select(length > 0)]' <<< "$INSTALLED_PACKAGES")"
-            yq -i ".envsetup_homebrew_installed_packages = ${PACKAGES}" "$CFILE"
-            echo -e "${C_SUC}Updated ${C_WAR}envsetup_homebrew_installed_packages${C_SUC} with ${C_WAR}$COUNT${C_SUC} items${C_RES}"
-
+            config_export_02_cli "$CFILE"
             ;;
         03-apps)
-            echo -e "${C_HIL}Exporting 03-apps...${C_RES}\n"
-
-            INSTALLED_CASKS=$(brew list --casks | grep -v '^\s*$')
-            COUNT="$(echo "$INSTALLED_CASKS" | wc -l | xargs)"
-            CASKS="$(jq -c -Rs '[split("\n") | .[] | select(length > 0)]' <<< "$INSTALLED_CASKS")"
-            yq -i ".envsetup_homebrew_cask_apps = ${CASKS}" "$CFILE"
-            echo -e "${C_SUC}Updated ${C_WAR}envsetup_homebrew_cask_apps${C_SUC} with ${C_WAR}$COUNT${C_SUC} items${C_RES}"
-
-            #@TODO: mas_installed_apps|mas_uninstalled_apps
-            #brew bundle dump --file=- | sed -n '/^mas/p'
-            #@TODO: configure_dock | dockitems_persist | dockitems_remove
-            #@TODO: envsetup_apps_macos_settings | envsetup_apps_macos_sudo_settings | envsetup_apps_macos_app_open:
-
-            # DOCK
-            # defaults read com.apple.dock persistent-apps | grep file-label | sed 's/.*file-label = "\(.*\)"\;/Name: /g'
-            # defaults read com.apple.dock persistent-apps | grep file-label | sed 's/.*file-label = "\(.*\)"\;/Name: /g' | awk '{print "Order: " NR, $0}'
-
+            config_export_03_apps "$CFILE"
             ;;
         04-packages)
-            echo -e "${C_HIL}Exporting 04-packages...${C_RES}\n"
-
-            INSTALLED_CRATES=$(cargo install --list  | awk '{print $1}' | uniq )
-            COUNT="$(echo "$INSTALLED_CRATES" | wc -l | xargs)"
-            CRATES="$(echo "$INSTALLED_CRATES" | xargs -I {} echo '{"name": "{}"}' | jq -cs '.')"
-            yq -i ".cargo_packages = ${CRATES}" "$CFILE"
-            echo -e "${C_SUC}Updated ${C_WAR}cargo_packages${C_SUC} with ${C_WAR}$COUNT${C_SUC} items${C_RES}"
-
-            INSTALLED_COMPOSER_PLUGINS=$(jq -r '.config."allow-plugins" | keys[]' "$(composer global config home 2> /dev/null)/composer.json")
-            COUNT="$(echo "$INSTALLED_COMPOSER_PLUGINS" | wc -l | xargs)"
-            PLUGINS="$(jq -R '{name: .}' <<< "$INSTALLED_COMPOSER_PLUGINS" | jq -sc)"
-            yq -i ".composer_plugins = ${PLUGINS}" "$CFILE"
-            echo -e "${C_SUC}Updated ${C_WAR}composer_plugins${C_SUC} with ${C_WAR}$COUNT${C_SUC} items${C_RES}"
-
-            INSTALLED_COMPOSER_PACKAGES=$(jq -r '.require | keys[]' "$(composer global config home 2> /dev/null)/composer.json")
-            COUNT="$(echo "$INSTALLED_COMPOSER_PACKAGES" | wc -l | xargs)"
-            PACKAGES="$(jq -R '{name: .}' <<< "$INSTALLED_COMPOSER_PACKAGES" | jq -sc)"
-            yq -i ".composer_packages = ${PACKAGES}" "$CFILE"
-            echo -e "${C_SUC}Updated ${C_WAR}composer_packages${C_SUC} with ${C_WAR}$COUNT${C_SUC} items${C_RES}"
-
-            INSTALLED_GOBINS="$(for bin in $(go env GOPATH)/bin/*; do printf "%s\n" "$(go version -m $bin | awk '$1 == "path" {print $2}' | sed 's/$/@latest/')"; done)"
-            COUNT="$(echo "$INSTALLED_GOBINS" | wc -l | xargs)"
-            GOBINS="$(echo "$INSTALLED_GOBINS" | xargs -I {} echo '{"name": "{}"}' | jq -cs '.')"
-            yq -i ".go_packages = ${GOBINS}" "$CFILE"
-            echo -e "${C_SUC}Updated ${C_WAR}go_packages${C_SUC} with ${C_WAR}$COUNT${C_SUC} items${C_RES}"
-
-            INSTALLED_GEMS=$(gem list | sed 's/ (.*//')
-            COUNT="$(echo "$INSTALLED_GEMS" | wc -l | xargs)"
-            GEMS="$(jq -R '{name: .}' <<< "$INSTALLED_GEMS" | jq -sc)"
-            yq -i ".gem_packages = ${GEMS}" "$CFILE"
-            echo -e "${C_SUC}Updated ${C_WAR}gem_packages${C_SUC} with ${C_WAR}$COUNT${C_SUC} items${C_RES}"
-
-            INSTALLED_NPM_PACKAGES=$(npm list -g --depth=0 --parseable --silent 2>/dev/null | xargs -I {} basename {})
-            COUNT="$(echo "$INSTALLED_NPM_PACKAGES" | wc -l | xargs)"
-            NPM_PACKAGES="$(echo "$INSTALLED_NPM_PACKAGES" | xargs -I {} echo '{"name": "{}"}' | jq -cs '.')"
-            yq -i ".npm_packages = ${NPM_PACKAGES}" "$CFILE"
-            echo -e "${C_SUC}Updated ${C_WAR}npm_packages${C_SUC} with ${C_WAR}$COUNT${C_SUC} items${C_RES}"
-
-            INSTALLED_PIPS=$(pipx list --short | sed 's/ .*//')
-            COUNT="$(echo "$INSTALLED_PIPS" | wc -l | xargs)"
-            PIPS="$(jq -R '{name: .}' <<< "$INSTALLED_PIPS" | jq -sc)"
-            yq -i ".pip_packages = ${PIPS}" "$CFILE"
-            echo -e "${C_SUC}Updated ${C_WAR}pip_packages${C_SUC} with ${C_WAR}$COUNT${C_SUC} items${C_RES}"
-            #@TOOD: capture version
-
+            config_export_04_packages "$CFILE"
             ;;
         05-repos)
-            echo -e "${C_HIL}Exporting 05-repos...${C_RES}\n"
-
-            GIT_REPO_DIR=$(yq eval '.git_repo_project_dir' "$CFILE" \
-                | sed "s|~|$HOME|g")
-
-            if [[ ! -d "$GIT_REPO_DIR" ]]; then
-                echo -e "${C_WAR}Git repo directory not found: " \
-                    "$GIT_REPO_DIR${C_RES}"
-            else
-                echo -e "${C_SUC}Scanning for git repos in: " \
-                    "${C_WAR}$GIT_REPO_DIR${C_RES}"
-
-                # Build JSON array of repo objects
-                REPO_JSON="[]"
-
-                # Find all subdirectories containing .git
-                while IFS= read -r -d '' REPO_PATH; do
-                    REPO_DIR=$(dirname "$REPO_PATH")
-                    REPO_NAME=$(basename "$REPO_DIR")
-
-                    echo -e "  Found repo: ${C_HIL}$REPO_NAME${C_RES}"
-
-                    # Get origin URL
-                    ORIGIN_URL=$(git -C "$REPO_DIR" remote get-url origin 2>/dev/null || echo "")
-
-                    # Get other remotes (excluding origin)
-                    UPSTREAM_URL=""
-                    while IFS= read -r REMOTE_NAME; do
-                        if [[ "$REMOTE_NAME" != "origin" && -n "$REMOTE_NAME" ]]; then
-                            UPSTREAM_URL=$(git -C "$REPO_DIR" remote get-url "$REMOTE_NAME" 2>/dev/null || echo "")
-                            break
-                        fi
-                    done < <(git -C "$REPO_DIR" remote 2>/dev/null)
-
-                    # Build repo object
-                    REPO_OBJ=$(jq -n \
-                        --arg name "$REPO_NAME" \
-                        --arg url "$ORIGIN_URL" \
-                        --arg upstream "$UPSTREAM_URL" \
-                        '{name: $name, url: $url, upstream: $upstream}')
-
-                    # Add to array
-                    REPO_JSON=$(jq --argjson obj "$REPO_OBJ" '. + [$obj]' <<< "$REPO_JSON")
-
-                done < <(find "$GIT_REPO_DIR" -maxdepth 2 -type d -name ".git" -print0)
-
-                # Update "$CFILE" with the repo array
-                if [[ "$REPO_JSON" != "[]" ]]; then
-                    yq -i ".git_repo_projects = $REPO_JSON" "$CFILE"
-                    echo -e "${C_SUC}Updated $CFILE with $(jq 'length' <<< "$REPO_JSON") repos${C_RES}"
-                else
-                    echo -e "${C_WAR}No git repos found${C_RES}"
-                fi
-            fi
+            config_export_05_repos "$CFILE"
             ;;
         06-os)
-            echo -e "${C_HIL}Exporting 06-os...${C_RES}\n"
-            # @TODO: Add OS export logic
-            #
-            # envsetup_os_hostname
-            # envsetup_os_avatar_url
-            # envsetup_os_macos_config_script
-            # envsetup_os_macos_settings
-            # envsetup_os_macos_sudo_settings
-            # envsetup_os_linux_settings
-
+            config_export_06_os "$CFILE"
             ;;
         07-cloud)
-            echo -e "${C_HIL}Exporting 07-cloud...${C_RES}\n"
-            # @TODO: Add cloud export logic
-            #
-            # envsetup_cloud_app
-            # envsetup_cloud_dir
-            # envsetup_cloud_backup_dir
-            # envsetup_cloud_sync_script
-            # envsetup_cloud_project_root
-            # envsetup_cloud_project_list
-            # envsetup_cloud_project_dirs
-            # envsetup_cloud_project_symlink
-
+            config_export_07_cloud "$CFILE"
             ;;
         08-prefs)
-            echo -e "${C_HIL}Exporting 08-prefs...${C_RES}\n"
-            # @TODO: Prefs export logic here
-            #
-            # envsetup_prefs_macos_other_dockitems_persist
-            # envsetup_prefs_macos_other_dockitems_remove
-            # envsetup_prefs_macos_file_extension_handlers
-            # envsetup_prefs_macos_login_items
-            # envsetup_prefs_macos_settings
-            # envsetup_prefs_macos_sudo_settings
-            # envsetup_prefs_macos_app_open
-            # envsetup_prefs_visual_studio_code_extensions
-            # envsetup_prefs_visual_studio_code_extensions_absent
-
-            # defaults read com.apple.dock persistent-others | grep file-label | sed 's/.*file-label = "\(.*\)"\;/Name: /g' | awk '{print "Order: " NR, $0}'
+            config_export_08_prefs "$CFILE"
             ;;
         all)
-            echo -e "${C_HIL}Exporting all ...${C_RES}\n"
-            # @TODO: Run all exports
-
+            config_export_01_config "$CFILE"
+            config_export_02_cli "$CFILE"
+            config_export_03_apps "$CFILE"
+            config_export_04_packages "$CFILE"
+            config_export_05_repos "$CFILE"
+            config_export_06_os "$CFILE"
+            config_export_07_cloud "$CFILE"
+            config_export_08_prefs "$CFILE"
             ;;
         *)
             echo -e "${C_ERR}Invalid playbook: ${C_WAR}$PLAYBOOK${C_RES}"
@@ -614,7 +683,7 @@ while getopts 'AcCheistuvx' FLAG; do
 
         x)
             shift "$((OPTIND-1))"
-            xport "${1:-""}"
+            config_export "${1:-""}"
             exit 0
             ;;
 
